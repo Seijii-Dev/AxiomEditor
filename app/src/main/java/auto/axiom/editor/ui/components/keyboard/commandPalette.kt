@@ -15,24 +15,38 @@
 
 package auto.axiom.editor.ui.components.keyboard
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,6 +59,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
@@ -62,113 +78,257 @@ fun CommandPalette(
     onDismissRequest: () -> Unit
 ) {
     val focusRequester = remember { FocusRequester() }
+    var query by remember { mutableStateOf("") }
 
-    // Combine recently used commands with the rest of the commands, removing duplicates
-    val sortedCommands = remember {
-        val allCommands = recentlyUsedCommands + commands.filter {
-            it !in recentlyUsedCommands
-        }.toMutableList().apply { sortBy { it.name.lowercase() } }
-
-        allCommands
+    val recentFiltered = remember(query, recentlyUsedCommands) {
+        if (query.isBlank()) recentlyUsedCommands.take(5)
+        else recentlyUsedCommands.filter {
+            it.name.contains(query, ignoreCase = true)
+        }
     }
 
-    val currentCompositonContext = rememberCompositionContext()
+    val allFiltered = remember(query, commands, recentlyUsedCommands) {
+        val recents = recentlyUsedCommands.toSet()
+        commands
+            .filter { it !in recents }
+            .filter { query.isBlank() || it.name.contains(query, ignoreCase = true) }
+            .sortedBy { it.name.lowercase() }
+    }
+
+    val hasResults = recentFiltered.isNotEmpty() || allFiltered.isNotEmpty()
 
     Popup(
         onDismissRequest = onDismissRequest,
-        properties = PopupProperties(
-            focusable = true,
-            dismissOnBackPress = true,
-            dismissOnClickOutside = true,
-            excludeFromSystemGesture = true
-        ),
-        alignment = Alignment.TopCenter
+        properties = PopupProperties(focusable = true)
     ) {
-        ElevatedCard(
+        Surface(
             modifier = modifier
-                .fillMaxWidth(0.9f)
-                .wrapContentHeight()
-                .imePadding()
-                .heightIn(min = 100.dp, max = 500.dp)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .imePadding(),
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            shadowElevation = 12.dp,
+            tonalElevation = 4.dp
         ) {
-            var searchQuery by remember { mutableStateOf("") }
+            Column {
+                // Search field
+                TextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(focusRequester),
+                    placeholder = {
+                        Text(
+                            "Search commands…",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Rounded.Search,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Done,
+                        keyboardType = KeyboardType.Text
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            val first = recentFiltered.firstOrNull() ?: allFiltered.firstOrNull()
+                            if (first != null) {
+                                onCommandSelected(first)
+                                onDismissRequest()
+                            }
+                        }
+                    ),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                    ),
+                    textStyle = MaterialTheme.typography.bodyMedium
+                )
 
-            TextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusable()
-                    .focusRequester(focusRequester),
-                placeholder = { Text("Type command") }
-            )
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outlineVariant,
+                    thickness = 0.5.dp
+                )
 
-            val filteredCommands = sortedCommands.filter {
-                it.name.contains(searchQuery, ignoreCase = true)
-            }
-
-            LazyColumn(
-                modifier = Modifier.padding(3.dp)
-            ) {
-                items(filteredCommands) { command ->
-                    val isRecentlyUsed = command in recentlyUsedCommands
-
-                    CommandItem(command, isRecentlyUsed = isRecentlyUsed) {
-                        CommandPaletteManager.instance.addRecentlyUsedCommand(command)
-
-                        it.action(command, currentCompositonContext)
-                        onCommandSelected(it)
+                // Results list
+                LazyColumn(
+                    modifier = Modifier.heightIn(max = 340.dp)
+                ) {
+                    // Recently used section
+                    if (recentFiltered.isNotEmpty()) {
+                        item {
+                            CommandSectionHeader(title = "Recent")
+                        }
+                        items(recentFiltered) { command ->
+                            CommandItem(
+                                command = command,
+                                isRecent = true,
+                                onClick = {
+                                    onCommandSelected(command)
+                                    onDismissRequest()
+                                }
+                            )
+                        }
+                        if (allFiltered.isNotEmpty()) {
+                            item {
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(horizontal = 12.dp),
+                                    color = MaterialTheme.colorScheme.outlineVariant,
+                                    thickness = 0.5.dp
+                                )
+                            }
+                        }
                     }
+
+                    // All commands section
+                    if (allFiltered.isNotEmpty()) {
+                        if (recentFiltered.isEmpty() || query.isNotBlank()) {
+                            item {
+                                CommandSectionHeader(
+                                    title = if (query.isNotBlank()) "Commands" else "All commands"
+                                )
+                            }
+                        } else {
+                            item {
+                                CommandSectionHeader(title = "All commands")
+                            }
+                        }
+                        items(allFiltered) { command ->
+                            CommandItem(
+                                command = command,
+                                isRecent = false,
+                                onClick = {
+                                    onCommandSelected(command)
+                                    onDismissRequest()
+                                }
+                            )
+                        }
+                    }
+
+                    // Empty state
+                    if (!hasResults && query.isNotBlank()) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 32.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "No commands match \"$query\"",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                )
+                            }
+                        }
+                    }
+
+                    // Bottom padding
+                    item { Spacer(modifier = Modifier.height(4.dp)) }
                 }
             }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
+}
+
+@Composable
+private fun CommandSectionHeader(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+        letterSpacing = 0.4.sp
+    )
+}
+
+@Composable
+private fun CommandItem(
+    command: Command,
+    isRecent: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 2.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .padding(horizontal = 8.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (isRecent) {
+            Icon(
+                imageVector = Icons.Rounded.History,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f),
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+        } else {
+            Spacer(modifier = Modifier.width(26.dp))
+        }
+
+        Text(
+            text = command.name,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f)
+        )
+
+        command.shortcut?.let { shortcut ->
+            Spacer(modifier = Modifier.width(8.dp))
+            ShortcutBadge(shortcut = shortcut)
         }
     }
 }
 
 @Composable
-private fun LazyItemScope.CommandItem(
-    command: Command,
-    isRecentlyUsed: Boolean = false,
-    onCommandSelected: (Command) -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .clip(CardDefaults.elevatedShape)
-            .clickable { onCommandSelected(command) }
-    ) {
-        Row(
-            modifier = Modifier.padding(5.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = command.name,
-                modifier = if (isRecentlyUsed) Modifier else Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                fontFamily = FontFamily.SansSerif,
-                fontSize = 14.sp
-            )
+private fun ShortcutBadge(shortcut: String) {
+    // Split compound shortcuts like "Ctrl+Shift+P" into individual key chips
+    val keys = shortcut.split("+", "  ").filter { it.isNotBlank() }
 
-            if (isRecentlyUsed) {
+    Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(2.dp)) {
+        keys.forEachIndexed { index, key ->
+            Surface(
+                shape = RoundedCornerShape(4.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                border = androidx.compose.foundation.BorderStroke(
+                    0.5.dp,
+                    MaterialTheme.colorScheme.outlineVariant
+                )
+            ) {
                 Text(
-                    text = "Recently used",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 8.dp)
-                        .weight(1f),
-                    fontSize = 9.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.harmonizeWithPrimary(0.6f)
+                    text = key,
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 10.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
                 )
             }
-
-            command.keybinding?.let {
+            if (index < keys.lastIndex) {
                 Text(
-                    text = it,
-                    color = Color(0xFF1369FF).harmonizeWithPrimary(fraction = 0.5f),
-                    fontSize = 11.sp,
-                    fontFamily = FontFamily.Monospace
+                    text = "+",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                    modifier = Modifier.align(Alignment.CenterVertically)
                 )
             }
         }

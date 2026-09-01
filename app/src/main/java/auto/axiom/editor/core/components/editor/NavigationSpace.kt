@@ -15,73 +15,124 @@
 
 package auto.axiom.editor.core.components.editor
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ProvideTextStyle
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kiwi.orbit.compose.ui.controls.Text
 
+/**
+ * Bottom navigation bar used below the code editor for plugin panels,
+ * terminal, and other secondary views.
+ *
+ * Changes from the original:
+ * - Minimum touch target 44dp (was 52dp container with small content)
+ * - Animated pill indicator on selected item instead of just color change
+ * - Subtle top border for elevation separation
+ * - Label is shown below icon (consistent with MD3 NavigationBar pattern)
+ * - Correct semantics for accessibility
+ */
 @Composable
 fun NavigationSpace(
     modifier: Modifier = Modifier,
     state: NavigationSpaceState = rememberNavigationSpaceState(),
+    selectedIndex: Int = -1,
     onItemClick: (NavigationSpaceItem) -> Unit
 ) {
     val items = remember { state.items }
 
-    Row(
-        modifier = modifier
-          .height(52.dp)
-          .fillMaxWidth()
-          .padding(horizontal = 2.dp, vertical = 2.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        repeat(items.size) {
-            val item = items[it]
+    Column(modifier = modifier) {
+        HorizontalDivider(
+            color = MaterialTheme.colorScheme.outlineVariant,
+            thickness = 0.5.dp
+        )
 
-            ProvideTextStyle(
-                MaterialTheme.typography.labelSmall
-            ) {
-                Card(
+        Row(
+            modifier = Modifier
+                .height(52.dp)
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                .padding(horizontal = 4.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            items.forEachIndexed { index, item ->
+                val isSelected = index == selectedIndex
+
+                val contentColor by animateColorAsState(
+                    targetValue = if (isSelected)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
+                    animationSpec = spring(stiffness = Spring.StiffnessMedium),
+                    label = "nav_item_color_$index"
+                )
+
+                Box(
                     modifier = Modifier
-                      .fillMaxSize()
-                      .padding(3.dp)
-                      .weight(1f),
-                    colors = CardDefaults.cardColors().copy(
-                        containerColor = Color.Transparent
-                    ),
-                    onClick = { onItemClick(item) }
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable { onItemClick(item) }
+                        .then(
+                            if (isSelected) Modifier.background(
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+                            ) else Modifier
+                        )
+                        .semantics {
+                            contentDescription = item.title + if (isSelected) ", selected" else ""
+                        },
+                    contentAlignment = Alignment.Center
                 ) {
                     Column(
-                        modifier = Modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
                         Icon(
                             imageVector = item.icon,
-                            contentDescription = item.title,
-                            modifier = Modifier.size(20.dp)
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                            tint = contentColor
                         )
-
-                        Text(text = item.title)
+                        Text(
+                            text = item.title,
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontSize = 10.sp
+                            ),
+                            color = contentColor,
+                            modifier = Modifier.padding(top = 2.dp)
+                        )
                     }
                 }
             }

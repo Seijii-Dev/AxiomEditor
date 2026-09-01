@@ -15,29 +15,41 @@
 
 package auto.axiom.editor.ui.screens.editor
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.InsertDriveFile
+import androidx.compose.material.icons.rounded.CreateNewFolder
+import androidx.compose.material.icons.rounded.FolderOpen
+import androidx.compose.material.icons.rounded.NoteAdd
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import auto.axiom.editor.ui.extensions.harmonizeWithPrimary
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun WelcomeScreen(
@@ -47,96 +59,214 @@ fun WelcomeScreen(
     modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = modifier.background(
-            Brush.verticalGradient(
-                listOf(
-                    MaterialTheme.colorScheme.background,
-                    MaterialTheme.colorScheme.background.harmonizeWithPrimary(0.05f)
-                )
-            )
-        ),
+        modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Card(
-            modifier = Modifier.padding(16.dp),
-            shape = MaterialTheme.shapes.large,
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface.harmonizeWithPrimary(0.1f)
-            )
+        Column(
+            modifier = Modifier
+                .widthIn(max = 360.dp)
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.Center
         ) {
-            WelcomeScreenContent(
-                onOpenFile = onOpenFile,
-                onNewFile = onNewFile,
-                onOpenFolder = onOpenFolder
+            // Wordmark-style heading
+            Text(
+                text = "Axiom Editor",
+                style = MaterialTheme.typography.headlineLarge.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = (-0.5).sp
+                ),
+                color = MaterialTheme.colorScheme.onBackground
             )
+
+            Text(
+                text = "Open a file or folder to start.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp, bottom = 28.dp)
+            )
+
+            // Primary actions
+            WelcomeAction(
+                icon = Icons.Rounded.FolderOpen,
+                label = "Open folder",
+                shortcut = "Ctrl+K  O",
+                description = "Browse your project directory",
+                onClick = onOpenFolder,
+                isPrimary = true
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                WelcomeAction(
+                    icon = Icons.Rounded.NoteAdd,
+                    label = "New file",
+                    shortcut = "Ctrl+N",
+                    description = null,
+                    onClick = onNewFile,
+                    isPrimary = false,
+                    modifier = Modifier.weight(1f)
+                )
+                WelcomeAction(
+                    icon = Icons.AutoMirrored.Rounded.InsertDriveFile,
+                    label = "Open file",
+                    shortcut = "Ctrl+O",
+                    description = null,
+                    onClick = onOpenFile,
+                    isPrimary = false,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Keyboard shortcuts hint section
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Shortcuts",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                letterSpacing = 0.5.sp
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            ShortcutHint(label = "Command palette", keys = "Ctrl + Shift + P")
+            ShortcutHint(label = "Toggle terminal", keys = "Ctrl + `")
+            ShortcutHint(label = "Generate code (AI)", keys = "Alt + I")
+            ShortcutHint(label = "Settings", keys = "Ctrl + ,")
         }
     }
 }
 
 @Composable
-private fun WelcomeScreenContent(
-    onOpenFile: () -> Unit,
-    onNewFile: () -> Unit,
-    onOpenFolder: () -> Unit
+private fun WelcomeAction(
+    icon: ImageVector,
+    label: String,
+    shortcut: String,
+    description: String?,
+    onClick: () -> Unit,
+    isPrimary: Boolean,
+    modifier: Modifier = Modifier
 ) {
-    Column(
+    if (isPrimary) {
+        Surface(
+            modifier = modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick),
+            shape = RoundedCornerShape(10.dp),
+            color = MaterialTheme.colorScheme.primaryContainer,
+            tonalElevation = 0.dp
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(22.dp)
+                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    if (description != null) {
+                        Text(
+                            text = description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                        )
+                    }
+                }
+                Text(
+                    text = shortcut,
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 10.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+                )
+            }
+        }
+    } else {
+        OutlinedCard(
+            modifier = modifier.clickable(onClick = onClick),
+            shape = RoundedCornerShape(10.dp),
+            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(14.dp),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp)
+                )
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = shortcut,
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 10.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ShortcutHint(
+    label: String,
+    keys: String
+) {
+    Row(
         modifier = Modifier
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .fillMaxWidth()
+            .padding(vertical = 3.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "Welcome to Axiom Editor",
-            color = MaterialTheme.colorScheme.onSurface.harmonizeWithPrimary(fraction = 0.4f),
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(bottom = 8.dp)
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-
-        Text(
-            text = "Open a file or folder to start coding",
-            color = MaterialTheme.colorScheme.onSurface,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+        Surface(
+            shape = RoundedCornerShape(4.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHighest
         ) {
-            WelcomeScreenButton(
-                text = "Open File",
-                onClick = onOpenFile
-            )
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            WelcomeScreenButton(
-                text = "New File",
-                onClick = onNewFile
+            Text(
+                text = keys,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 10.sp
+                ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
             )
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        OutlinedButton(
-            onClick = onOpenFolder,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = "Open Folder")
-        }
-    }
-}
-
-@Composable
-private fun RowScope.WelcomeScreenButton(
-    text: String,
-    onClick: () -> Unit
-) {
-    Button(
-        onClick = onClick,
-        shape = MaterialTheme.shapes.medium,
-        modifier = Modifier.weight(1f)
-    ) {
-        Text(text = text)
     }
 }

@@ -17,9 +17,16 @@ package auto.axiom.editor.compose.ui.filetree
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
@@ -28,11 +35,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.ChevronRight
@@ -52,13 +61,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import auto.axiom.editor.compose.LocalDarkMode
 import auto.axiom.editor.compose.ui.graphics.rememberSvgAssetImageBitmap
 import auto.axiom.editor.core.FileIcons
+
+private val indentWidth = 16.dp
+private val iconSize = 16.dp
+private val rowHeight = 30.dp
 
 @SuppressLint("MaterialDesignInsteadOrbitDesign")
 @Composable
@@ -103,11 +118,10 @@ private fun FileTreeNodeItem(
 ) {
     var isExpanded by remember { mutableStateOf(depth == 0) }
     val children = remember { mutableStateListOf<FileTreeNode>() }
-    val horizontalPadding = (depth * 16).dp
+    var isHovered by remember { mutableStateOf(false) }
 
     LaunchedEffect(node) {
         children.clear()
-
         node.children.collect { childNode ->
             children.add(childNode)
         }
@@ -116,10 +130,17 @@ private fun FileTreeNodeItem(
     val hasChildren = node.file.isDirectory && children.isNotEmpty()
     val isLight = LocalDarkMode.current.not()
 
+    val chevronRotation by animateFloatAsState(
+        targetValue = if (isExpanded) 90f else 0f,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "chevron_rotation"
+    )
+
     Column {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .height(rowHeight)
                 .combinedClickable(
                     onClick = {
                         if (node.file.isDirectory) {
@@ -128,104 +149,149 @@ private fun FileTreeNodeItem(
                             onFileClick(node)
                         }
                     },
-                    onLongClick = {
-                        onFileLongClick(node)
-                    }
+                    onLongClick = { onFileLongClick(node) }
                 )
-                .padding(vertical = 4.dp),
+                .clip(RoundedCornerShape(4.dp))
+                .padding(end = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Spacer(modifier = Modifier.width(horizontalPadding))
-
-            // Show arrow only for directories with children
-            if (hasChildren) {
-                val rotationDegree by animateFloatAsState(
-                    targetValue = if (!isExpanded) 0f else 90f,
-                    label = "Arrow rotation animation"
-                )
-
-                Icon(
-                    imageVector = Icons.Default.ChevronRight,
-                    contentDescription = "Expand/Collapse",
+            // Indent guides — thin vertical lines for each depth level
+            repeat(depth) { level ->
+                Box(
                     modifier = Modifier
-                        .size(20.dp)
-                        .rotate(rotationDegree),
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                )
-            } else {
-                Spacer(modifier = Modifier.width(24.dp))
+                        .width(indentWidth)
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (level == depth - 1) {
+                        // Last level: show the guide
+                        Box(
+                            modifier = Modifier
+                                .width(1.dp)
+                                .fillMaxSize()
+                                .background(
+                                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                                )
+                        )
+                    }
+                }
             }
 
-            if (node.file.isDirectory) {
-                if (FileIcons.getSvgIconForFolder(
+            // Chevron or spacer
+            Box(
+                modifier = Modifier.size(20.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                if (hasChildren) {
+                    Icon(
+                        imageVector = Icons.Default.ChevronRight,
+                        contentDescription = if (isExpanded) "Collapse" else "Expand",
+                        modifier = Modifier
+                            .size(14.dp)
+                            .rotate(chevronRotation),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                } else if (node.file.isDirectory) {
+                    // Empty directory — still reserve space
+                    Spacer(modifier = Modifier.width(14.dp))
+                }
+            }
+
+            // File/folder icon
+            Box(
+                modifier = Modifier.size(iconSize),
+                contentAlignment = Alignment.Center
+            ) {
+                if (node.file.isDirectory) {
+                    val customIconPath = FileIcons.getSvgIconForFolder(
                         node.file.path,
                         isExpanded = false
-                    ) == "files/icons/folder.svg"
-                ) {
-                    Icon(
-                        imageVector = if (isExpanded) Icons.Default.FolderOpen else Icons.Default.Folder,
-                        contentDescription = "Folder",
-                        tint = Color(0xFFFFCA28),
-                        modifier = Modifier.size(20.dp)
                     )
+                    if (customIconPath == "files/icons/folder.svg") {
+                        Icon(
+                            imageVector = if (isExpanded) Icons.Default.FolderOpen else Icons.Default.Folder,
+                            contentDescription = null,
+                            tint = Color(0xFFFFCA28),
+                            modifier = Modifier.size(iconSize)
+                        )
+                    } else {
+                        Image(
+                            bitmap = rememberSvgAssetImageBitmap(
+                                FileIcons.getSvgIconForFolder(
+                                    folderPath = node.file.path,
+                                    isExpanded = isExpanded,
+                                    isLight = isLight
+                                )
+                            ),
+                            contentDescription = null,
+                            modifier = Modifier.size(iconSize)
+                        )
+                    }
                 } else {
-                    Image(
-                        bitmap = rememberSvgAssetImageBitmap(
-                            FileIcons.getSvgIconForFolder(
-                                folderPath = node.file.path,
-                                isExpanded = isExpanded,
-                                isLight = isLight
-                            )
-                        ),
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            } else {
-                if (FileIcons.getSvgIconForFile(node.file.path) == "files/icons/file.svg") {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.InsertDriveFile,
-                        contentDescription = "File",
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                        modifier = Modifier.size(20.dp)
-                    )
-                } else {
-                    Image(
-                        bitmap = rememberSvgAssetImageBitmap(
-                            FileIcons.getSvgIconForFile(
-                                filePath = node.file.path,
-                                isLight = isLight
-                            )
-                        ),
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
+                    val customIconPath = FileIcons.getSvgIconForFile(node.file.path)
+                    if (customIconPath == "files/icons/file.svg") {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.InsertDriveFile,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            modifier = Modifier.size(iconSize)
+                        )
+                    } else {
+                        Image(
+                            bitmap = rememberSvgAssetImageBitmap(
+                                FileIcons.getSvgIconForFile(
+                                    filePath = node.file.path,
+                                    isLight = isLight
+                                )
+                            ),
+                            contentDescription = null,
+                            modifier = Modifier.size(iconSize)
+                        )
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(6.dp))
 
-            // File or folder name
+            // Name
             Text(
                 text = node.file.name,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
+                color = if (node.file.isDirectory)
+                    MaterialTheme.colorScheme.onSurface
+                else
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(end = 16.dp)
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp)
             )
 
-            val isLoading = !node.file.asRawFile()?.list().isNullOrEmpty() && children.isEmpty()
+            // Loading spinner for directories being loaded
+            val isLoading = node.file.isDirectory &&
+                !node.file.asRawFile()?.list().isNullOrEmpty() &&
+                children.isEmpty()
 
-            if (node.file.isDirectory && isLoading) {
+            if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(10.dp),
-                    strokeWidth = (1.5f).dp,
+                    strokeWidth = 1.5.dp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
                 )
             }
         }
 
-        // Show children if expanded
-        AnimatedVisibility(visible = isExpanded && hasChildren) {
+        // Children
+        AnimatedVisibility(
+            visible = isExpanded && hasChildren,
+            enter = expandVertically(
+                animationSpec = spring(stiffness = Spring.StiffnessMedium)
+            ) + fadeIn(),
+            exit = shrinkVertically(
+                animationSpec = spring(stiffness = Spring.StiffnessMedium)
+            ) + fadeOut()
+        ) {
             Column {
                 children.forEach { childNode ->
                     FileTreeNodeItem(
