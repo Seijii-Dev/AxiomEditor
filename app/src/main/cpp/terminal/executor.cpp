@@ -10,7 +10,7 @@
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
 extern "C" JNIEXPORT jint JNICALL
-Java_com_teixeira_axiomeditor_terminal_Executor_runBinary(
+Java_auto_axiom_editor_terminal_Executor_runBinary(
     JNIEnv* env,
     jobject /* this */,
     jstring binaryPath,

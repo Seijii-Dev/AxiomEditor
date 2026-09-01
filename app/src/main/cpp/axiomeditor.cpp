@@ -4,7 +4,7 @@
 #include <string>
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_teixeira_axiomeditor_core_Secrets_getGenerativeAiApiKey(JNIEnv* env, jclass) {
+Java_auto_axiom_editor_core_Secrets_getGenerativeAiApiKey(JNIEnv* env, jclass) {
     std::string key = AI::gemini::getApiKey();
     return env->NewStringUTF(key.c_str());
 }
