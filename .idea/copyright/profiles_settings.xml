@@ -1,0 +1,7 @@
+<component name="CopyrightManager">
+  <settings default="AxiomEditor">
+    <module2copyright>
+      <element module="Production" copyright="AxiomEditor" />
+    </module2copyright>
+  </settings>
+</component>
