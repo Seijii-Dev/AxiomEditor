@@ -291,7 +291,7 @@ private fun CommandItem(
             modifier = Modifier.weight(1f)
         )
 
-        command.shortcut?.let { shortcut ->
+        command.keybinding?.let { shortcut ->
             Spacer(modifier = Modifier.width(8.dp))
             ShortcutBadge(shortcut = shortcut)
         }

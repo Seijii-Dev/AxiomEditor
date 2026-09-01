@@ -57,7 +57,6 @@ import auto.axiom.editor.ui.screens.editor.EditorViewModel
 import kiwi.orbit.compose.icons.Icons
 import kiwi.orbit.compose.ui.controls.Icon
 import kiwi.orbit.compose.ui.controls.Separator
-import kiwi.orbit.compose.ui.controls.Tab
 import kiwi.orbit.compose.ui.controls.Text
 
 @SuppressLint("MaterialDesignInsteadOrbitDesign")
@@ -122,13 +121,13 @@ fun EditorTab(
                         .background(tabBackground)
                         .semantics {
                             contentDescription = "${file.file.name}${if (file.isModified) ", unsaved" else ""}"
-                        }
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                    ) {
+                        },
+                    content = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
                         // Unsaved dot indicator (replaces the "*" prefix)
                         if (file.isModified) {
                             Box(
@@ -189,7 +188,7 @@ fun EditorTab(
                             }
                         }
                     }
-                }
+                )
             }
         }
     }
