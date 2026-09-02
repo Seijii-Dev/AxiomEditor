@@ -48,8 +48,11 @@ object GradleJavaLibraryProjectCreator {
             val libsPath = projectPath.resolve("libs")
             Files.createDirectories(libsPath.toPath())
 
-            context.assets.open("plugin/plugins-api.jar").use {
-                libsPath.resolve("plugins-api.jar").writeBytes(it.readBytes())
+            // Stream-based file copy to avoid memory overhead
+            context.assets.open("plugin/plugins-api.jar").use { input ->
+                libsPath.resolve("plugins-api.jar").outputStream().use { output ->
+                    input.copyTo(output, bufferSize = 8192)
+                }
             }
 
             val srcMainJava = projectPath.resolve("src/main/java")
@@ -80,8 +83,11 @@ object GradleJavaLibraryProjectCreator {
             """.trimIndent())
 
             val resZip = srcMainResources.resolve("res.zip")
-            context.assets.open("plugin/res.zip").use {
-                resZip.writeBytes(it.readBytes())
+            // Stream-based zip extraction
+            context.assets.open("plugin/res.zip").use { input ->
+                resZip.outputStream().use { output ->
+                    input.copyTo(output, bufferSize = 8192)
+                }
             }
             resZip.extractZipFile(projectPath.resolve("src/main"))
             resZip.delete()
@@ -226,8 +232,11 @@ object GradleJavaLibraryProjectCreator {
             """.trimIndent())
 
             val gradlewZip = base.resolve("gradlew.zip")
-            context.assets.open("plugin/gradlew.zip").use {
-                gradlewZip.writeBytes(it.readBytes())
+            // Stream-based zip extraction
+            context.assets.open("plugin/gradlew.zip").use { input ->
+                gradlewZip.outputStream().use { output ->
+                    input.copyTo(output, bufferSize = 8192)
+                }
             }
 
             gradlewZip.extractZipFile(base)
