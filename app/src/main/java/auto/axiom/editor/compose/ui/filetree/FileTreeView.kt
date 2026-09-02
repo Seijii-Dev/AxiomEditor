@@ -39,15 +39,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FolderOpen
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -71,10 +71,31 @@ import auto.axiom.editor.compose.LocalDarkMode
 import auto.axiom.editor.compose.ui.graphics.rememberSvgAssetImageBitmap
 import auto.axiom.editor.core.FileIcons
 
-private val indentWidth = 16.dp
-private val iconSize = 16.dp
-private val rowHeight = 30.dp
+private val INDENT_WIDTH = 16.dp
+private val ICON_SIZE   = 16.dp
+private val ROW_HEIGHT  = 32.dp
 
+/**
+ * File tree widget.
+ *
+ * ## Layout fix
+ *
+ * The original implementation placed the entire recursive composable tree inside a single
+ * `LazyColumn { item { … } }` block wrapped by `horizontalScroll`. That combination is broken:
+ *
+ * 1. `LazyColumn` gives its single `item` **unbounded height**, so `fillMaxSize()` on inner
+ *    boxes collapses to zero — the indent guide boxes disappeared.
+ * 2. `horizontalScroll` gives the `Row`s **unbounded width**, which means `Modifier.weight(1f)`
+ *    on the `Text` has nothing to divide — it collapses to zero width and the text is invisible.
+ *
+ * Fix: use a plain `Column` inside a `verticalScroll` + `horizontalScroll` box. The column has
+ * `widthIn(min = …)` so rows always have a concrete lower-bound width. The `Text` then uses
+ * `Modifier.wrapContentWidth()` instead of `weight(1f)`.
+ *
+ * A proper virtualized solution would flatten the recursive tree into a `LazyColumn` item list,
+ * but that's a larger refactor; the scroll approach is correct for the directory sizes a mobile
+ * code editor typically opens.
+ */
 @SuppressLint("MaterialDesignInsteadOrbitDesign")
 @Composable
 fun FileTreeView(
@@ -87,22 +108,26 @@ fun FileTreeView(
         modifier = modifier,
         color = MaterialTheme.colorScheme.surface,
     ) {
+        // Two-axis scroll: horizontal for deep nesting, vertical for tall trees.
+        // widthIn(min) gives each Row a concrete minimum width so text is always visible.
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .horizontalScroll(rememberScrollState())
         ) {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize()
+            Column(
+                modifier = Modifier
+                    .verticalScroll(rememberScrollState())
+                    .widthIn(min = 240.dp)   // ensures Row width is always bounded
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
             ) {
-                item {
-                    FileTreeNodeItem(
-                        node = rootNode,
-                        depth = 0,
-                        onFileClick = onFileClick,
-                        onFileLongClick = onFileLongClick
-                    )
-                }
+                FileTreeNodeItem(
+                    node = rootNode,
+                    depth = 0,
+                    onFileClick = onFileClick,
+                    onFileLongClick = onFileLongClick,
+                )
             }
         }
     }
@@ -114,11 +139,10 @@ private fun FileTreeNodeItem(
     node: FileTreeNode,
     depth: Int,
     onFileClick: (FileTreeNode) -> Unit,
-    onFileLongClick: (FileTreeNode) -> Unit
+    onFileLongClick: (FileTreeNode) -> Unit,
 ) {
     var isExpanded by remember { mutableStateOf(depth == 0) }
     val children = remember { mutableStateListOf<FileTreeNode>() }
-    var isHovered by remember { mutableStateOf(false) }
 
     LaunchedEffect(node) {
         children.clear()
@@ -133,119 +157,116 @@ private fun FileTreeNodeItem(
     val chevronRotation by animateFloatAsState(
         targetValue = if (isExpanded) 90f else 0f,
         animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "chevron_rotation"
+        label = "chevron_rotation",
     )
 
     Column {
+        // ── Row ──────────────────────────────────────────────────────────────
+        // NOTE: do NOT use fillMaxWidth() here — the parent horizontalScroll
+        // gives an unbounded width, so fillMaxWidth() would be unbounded too.
+        // We let the Row size to its content instead.
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(rowHeight)
+                .height(ROW_HEIGHT)
                 .combinedClickable(
                     onClick = {
-                        if (node.file.isDirectory) {
-                            isExpanded = !isExpanded
-                        } else {
-                            onFileClick(node)
-                        }
+                        if (node.file.isDirectory) isExpanded = !isExpanded
+                        else onFileClick(node)
                     },
-                    onLongClick = { onFileLongClick(node) }
+                    onLongClick = { onFileLongClick(node) },
                 )
                 .clip(RoundedCornerShape(4.dp))
-                .padding(end = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(end = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Indent guides — thin vertical lines for each depth level
+
+            // ── Indent guides ────────────────────────────────────────────────
+            // Use explicit fixed-width boxes so they don't collapse.
             repeat(depth) { level ->
                 Box(
                     modifier = Modifier
-                        .width(indentWidth)
-                        .fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                        .width(INDENT_WIDTH)
+                        .height(ROW_HEIGHT),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    if (level == depth - 1) {
-                        // Last level: show the guide
+                    if (level < depth - 1) {
+                        // Continuous guide for ancestor levels
                         Box(
                             modifier = Modifier
                                 .width(1.dp)
-                                .fillMaxSize()
+                                .height(ROW_HEIGHT)
                                 .background(
-                                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
                                 )
                         )
                     }
+                    // The last indent level has no guide — the chevron fills that slot
                 }
             }
 
-            // Chevron or spacer
+            // ── Chevron ──────────────────────────────────────────────────────
             Box(
                 modifier = Modifier.size(20.dp),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
-                if (hasChildren) {
-                    Icon(
-                        imageVector = Icons.Default.ChevronRight,
-                        contentDescription = if (isExpanded) "Collapse" else "Expand",
-                        modifier = Modifier
-                            .size(14.dp)
-                            .rotate(chevronRotation),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                    )
-                } else if (node.file.isDirectory) {
-                    // Empty directory — still reserve space
-                    Spacer(modifier = Modifier.width(14.dp))
+                if (node.file.isDirectory) {
+                    if (hasChildren || isExpanded) {
+                        Icon(
+                            imageVector = Icons.Default.ChevronRight,
+                            contentDescription = if (isExpanded) "Collapse" else "Expand",
+                            modifier = Modifier
+                                .size(16.dp)
+                                .rotate(chevronRotation),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
+                        )
+                    }
+                    // empty dir → no chevron, still occupies 20dp
                 }
             }
 
-            // File/folder icon
+            // ── File / folder icon ───────────────────────────────────────────
             Box(
-                modifier = Modifier.size(iconSize),
-                contentAlignment = Alignment.Center
+                modifier = Modifier.size(ICON_SIZE),
+                contentAlignment = Alignment.Center,
             ) {
                 if (node.file.isDirectory) {
-                    val customIconPath = FileIcons.getSvgIconForFolder(
-                        node.file.path,
-                        isExpanded = false
+                    val iconPath = FileIcons.getSvgIconForFolder(
+                        folderPath = node.file.path,
+                        isExpanded = isExpanded,
+                        isLight = isLight,
                     )
-                    if (customIconPath == "files/icons/folder.svg") {
+                    if (iconPath == "files/icons/folder.svg") {
                         Icon(
-                            imageVector = if (isExpanded) Icons.Default.FolderOpen else Icons.Default.Folder,
+                            imageVector = if (isExpanded) Icons.Default.FolderOpen
+                                          else Icons.Default.Folder,
                             contentDescription = null,
                             tint = Color(0xFFFFCA28),
-                            modifier = Modifier.size(iconSize)
+                            modifier = Modifier.size(ICON_SIZE),
                         )
                     } else {
                         Image(
-                            bitmap = rememberSvgAssetImageBitmap(
-                                FileIcons.getSvgIconForFolder(
-                                    folderPath = node.file.path,
-                                    isExpanded = isExpanded,
-                                    isLight = isLight
-                                )
-                            ),
+                            bitmap = rememberSvgAssetImageBitmap(iconPath),
                             contentDescription = null,
-                            modifier = Modifier.size(iconSize)
+                            modifier = Modifier.size(ICON_SIZE),
                         )
                     }
                 } else {
-                    val customIconPath = FileIcons.getSvgIconForFile(node.file.path)
-                    if (customIconPath == "files/icons/file.svg") {
+                    val iconPath = FileIcons.getSvgIconForFile(
+                        filePath = node.file.path,
+                        isLight = isLight,
+                    )
+                    if (iconPath == "files/icons/file.svg") {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.InsertDriveFile,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                            modifier = Modifier.size(iconSize)
+                            modifier = Modifier.size(ICON_SIZE),
                         )
                     } else {
                         Image(
-                            bitmap = rememberSvgAssetImageBitmap(
-                                FileIcons.getSvgIconForFile(
-                                    filePath = node.file.path,
-                                    isLight = isLight
-                                )
-                            ),
+                            bitmap = rememberSvgAssetImageBitmap(iconPath),
                             contentDescription = null,
-                            modifier = Modifier.size(iconSize)
+                            modifier = Modifier.size(ICON_SIZE),
                         )
                     }
                 }
@@ -253,52 +274,36 @@ private fun FileTreeNodeItem(
 
             Spacer(modifier = Modifier.width(6.dp))
 
-            // Name
+            // ── Name ─────────────────────────────────────────────────────────
+            // Use wrapContentWidth() — NOT weight(1f).
+            // weight() requires a bounded-width parent; in a horizontalScroll
+            // container the parent width is infinite, so weight collapses to 0.
             Text(
                 text = node.file.name,
                 style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
-                color = if (node.file.isDirectory)
-                    MaterialTheme.colorScheme.onSurface
-                else
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
+                color = MaterialTheme.colorScheme.onSurface.copy(
+                    alpha = if (node.file.isDirectory) 1f else 0.9f
+                ),
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp)
+                overflow = TextOverflow.Clip,
             )
-
-            // Loading spinner for directories being loaded
-            val isLoading = node.file.isDirectory &&
-                !node.file.asRawFile()?.list().isNullOrEmpty() &&
-                children.isEmpty()
-
-            if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(10.dp),
-                    strokeWidth = 1.5.dp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                )
-            }
         }
 
-        // Children
+        // ── Children ──────────────────────────────────────────────────────────
         AnimatedVisibility(
             visible = isExpanded && hasChildren,
-            enter = expandVertically(
-                animationSpec = spring(stiffness = Spring.StiffnessMedium)
-            ) + fadeIn(),
-            exit = shrinkVertically(
-                animationSpec = spring(stiffness = Spring.StiffnessMedium)
-            ) + fadeOut()
+            enter = expandVertically(animationSpec = spring(stiffness = Spring.StiffnessMedium))
+                  + fadeIn(),
+            exit  = shrinkVertically(animationSpec = spring(stiffness = Spring.StiffnessMedium))
+                  + fadeOut(),
         ) {
             Column {
-                children.forEach { childNode ->
+                children.forEach { child ->
                     FileTreeNodeItem(
-                        node = childNode,
+                        node = child,
                         depth = depth + 1,
                         onFileClick = onFileClick,
-                        onFileLongClick = onFileLongClick
+                        onFileLongClick = onFileLongClick,
                     )
                 }
             }
