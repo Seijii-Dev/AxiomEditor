@@ -188,6 +188,7 @@ fun EditorTab(
                             }
                         }
                     }
+                    }
                 )
             }
         }
