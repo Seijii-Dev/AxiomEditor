@@ -1,0 +1,42 @@
+name: Build Better MarkDown Plugin
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'plugins/Better-MarkDown/**'
+      - '.github/workflows/build-better-markdown.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build plugin APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build Better MarkDown
+        working-directory: plugins/Better-MarkDown
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Assemble installable plugin ZIP
+        working-directory: plugins/Better-MarkDown
+        run: |
+          mkdir -p dist
+          cp plugin.properties dist/plugin.properties
+          cp app/build/outputs/apk/release/app-release-unsigned.apk dist/app-release-unsigned.apk
+          cd dist
+          zip -q Better-MarkDown.zip plugin.properties app-release-unsigned.apk
+
+      - name: Upload plugin package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Better-MarkDown
+          path: plugins/Better-MarkDown/dist/Better-MarkDown.zip
