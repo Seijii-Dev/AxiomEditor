@@ -104,13 +104,11 @@ public final class BetterMarkDownPlugin implements Plugin {
             this.action = action;
         }
 
-        @NonNull
         @Override
         public String getCommandId() {
             return id;
         }
 
-        @NonNull
         @Override
         public String getName() {
             return name;
