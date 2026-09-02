@@ -549,7 +549,7 @@ fun EditorSettingsScreen(
             rememberState = { deleteMultiSpaces },
             defaultValue = deleteMultiSpaces.value,
             values = listOf(-1, 1, 2, 4, 8),
-            valueToText = { if (it == -1) "Follow tab size" else "$it spaces" },
+            valueToText = { AnnotatedString(if (it == -1) "Follow tab size" else "$it spaces") },
             icon = { Icon(Icons.Default.SpaceBar, contentDescription = null) },
             modifier = Modifier.clip(PreferenceShape.Middle).background(backgroundColor)
         )
