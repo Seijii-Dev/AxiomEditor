@@ -22,6 +22,12 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Build current Axiom Editor plugin API
+        run: ./gradlew :feature:plugins:assembleRelease --no-daemon
+
+      - name: Refresh plugin API JAR
+        run: cp feature/plugins/build/intermediates/full_jar/release/createFullJarRelease/full.jar plugins/Better-MarkDown/app/libs/plugins-api.jar
+
       - name: Build Better MarkDown
         working-directory: plugins/Better-MarkDown
         run: ./gradlew assembleRelease --no-daemon
