@@ -52,6 +52,9 @@ class AxiomEditorTMLanguage protected constructor(
 
     private var useTab = false
 
+    @JvmField
+    var autoIndentEnabled: Boolean = true
+
     val autoCompleter: IdentifierAutoComplete = IdentifierAutoComplete()
     var isAutoCompleteEnabled: Boolean = true
 
@@ -159,7 +162,7 @@ class AxiomEditorTMLanguage protected constructor(
     }
 
     override fun getNewlineHandlers(): Array<AxiomEditorTMNewlineHandler> {
-        return newlineHandlers
+        return if (autoIndentEnabled) newlineHandlers else emptyArray()
     }
 
     override fun requireAutoComplete(

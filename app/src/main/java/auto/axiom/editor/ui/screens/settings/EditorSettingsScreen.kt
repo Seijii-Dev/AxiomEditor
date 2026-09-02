@@ -29,6 +29,7 @@ import androidx.compose.material.icons.automirrored.filled.FormatIndentIncrease
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.WrapText
 import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.DataArray
 import androidx.compose.material.icons.filled.Expand
 import androidx.compose.material.icons.filled.FontDownload
@@ -36,8 +37,10 @@ import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.SpaceBar
 import androidx.compose.material.icons.filled.Tab
 import androidx.compose.material.icons.filled.TextFields
+import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.filled.VerticalAlignTop
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -63,6 +66,14 @@ import auto.axiom.editor.core.settings.Settings.Editor.COLOR_SCHEME
 import auto.axiom.editor.core.settings.Settings.Editor.CURRENT_EDITOR
 import auto.axiom.editor.core.settings.Settings.Editor.DELETE_INDENT_ON_BACKSPACE
 import auto.axiom.editor.core.settings.Settings.Editor.DELETE_LINE_ON_BACKSPACE
+import auto.axiom.editor.core.settings.Settings.Editor.DELETE_MULTI_SPACES
+import auto.axiom.editor.core.settings.Settings.Editor.PIN_LINE_NUMBERS
+import auto.axiom.editor.core.settings.Settings.Editor.SYMBOL_PAIR_AUTO_COMPLETION
+import auto.axiom.editor.core.settings.Settings.Editor.AUTO_INDENT
+import auto.axiom.editor.core.settings.Settings.Editor.DISALLOW_SUGGESTIONS
+import auto.axiom.editor.core.settings.Settings.Editor.FORMAT_PASTED_TEXT
+import auto.axiom.editor.core.settings.Settings.Editor.ENHANCED_HOME_END
+import auto.axiom.editor.core.settings.Settings.Editor.RESELECT_ON_LONG_PRESS
 import auto.axiom.editor.core.settings.Settings.Editor.EDITOR_TEXT_ACTION_WINDOW_EXPAND_THRESHOLD
 import auto.axiom.editor.core.settings.Settings.Editor.FONT_FAMILY
 import auto.axiom.editor.core.settings.Settings.Editor.FONT_LIGATURES
@@ -78,6 +89,14 @@ import auto.axiom.editor.core.settings.Settings.Editor.rememberColorScheme
 import auto.axiom.editor.core.settings.Settings.Editor.rememberCurrentEditor
 import auto.axiom.editor.core.settings.Settings.Editor.rememberDeleteIndentOnBackspace
 import auto.axiom.editor.core.settings.Settings.Editor.rememberDeleteLineOnBackspace
+import auto.axiom.editor.core.settings.Settings.Editor.rememberDeleteMultiSpaces
+import auto.axiom.editor.core.settings.Settings.Editor.rememberPinLineNumbers
+import auto.axiom.editor.core.settings.Settings.Editor.rememberSymbolPairAutoCompletion
+import auto.axiom.editor.core.settings.Settings.Editor.rememberAutoIndent
+import auto.axiom.editor.core.settings.Settings.Editor.rememberDisallowSuggestions
+import auto.axiom.editor.core.settings.Settings.Editor.rememberFormatPastedText
+import auto.axiom.editor.core.settings.Settings.Editor.rememberEnhancedHomeEnd
+import auto.axiom.editor.core.settings.Settings.Editor.rememberReselectOnLongPress
 import auto.axiom.editor.core.settings.Settings.Editor.rememberEditorTextActionWindowExpandThreshold
 import auto.axiom.editor.core.settings.Settings.Editor.rememberFontFamily
 import auto.axiom.editor.core.settings.Settings.Editor.rememberFontLigatures
@@ -128,6 +147,14 @@ fun EditorSettingsScreen(
     val useTab = rememberUseTab()
     val deleteLineOnBackspace = rememberDeleteLineOnBackspace()
     val deleteIndentOnBackspace = rememberDeleteIndentOnBackspace()
+    val pinLineNumbers = rememberPinLineNumbers()
+    val deleteMultiSpaces = rememberDeleteMultiSpaces()
+    val symbolPairAutoCompletion = rememberSymbolPairAutoCompletion()
+    val autoIndent = rememberAutoIndent()
+    val disallowSuggestions = rememberDisallowSuggestions()
+    val formatPastedText = rememberFormatPastedText()
+    val enhancedHomeEnd = rememberEnhancedHomeEnd()
+    val reselectOnLongPress = rememberReselectOnLongPress()
     val editorTextActionWindowExpandThreshold = rememberEditorTextActionWindowExpandThreshold()
 
     LaunchedEffect(currentEditor.value) {
@@ -503,6 +530,88 @@ fun EditorSettingsScreen(
             modifier = Modifier
                 .clip(PreferenceShape.Middle)
                 .background(backgroundColor)
+        )
+
+        switchPreference(
+            key = PIN_LINE_NUMBERS.name,
+            title = { Text("Pin line numbers") },
+            summary = { Text(if (it) "Keep line numbers visible while scrolling" else "Allow line numbers to scroll normally") },
+            rememberState = { pinLineNumbers },
+            defaultValue = pinLineNumbers.value,
+            icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = null) },
+            modifier = Modifier.clip(PreferenceShape.Middle).background(backgroundColor)
+        )
+
+        listPreference(
+            key = DELETE_MULTI_SPACES.name,
+            title = { Text("Delete multiple spaces") },
+            summary = { Text(if (it == -1) "Follow tab size" else "$it spaces") },
+            rememberState = { deleteMultiSpaces },
+            defaultValue = deleteMultiSpaces.value,
+            values = listOf(-1, 1, 2, 4, 8),
+            valueToText = { if (it == -1) "Follow tab size" else "$it spaces" },
+            icon = { Icon(Icons.Default.SpaceBar, contentDescription = null) },
+            modifier = Modifier.clip(PreferenceShape.Middle).background(backgroundColor)
+        )
+
+        switchPreference(
+            key = SYMBOL_PAIR_AUTO_COMPLETION.name,
+            title = { Text("Symbol pair auto-completion") },
+            summary = { Text(if (it) "Automatically insert matching brackets and quotes" else "Do not insert matching symbol pairs") },
+            rememberState = { symbolPairAutoCompletion },
+            defaultValue = symbolPairAutoCompletion.value,
+            icon = { Icon(Icons.Default.DataArray, contentDescription = null) },
+            modifier = Modifier.clip(PreferenceShape.Middle).background(backgroundColor)
+        )
+
+        switchPreference(
+            key = AUTO_INDENT.name,
+            title = { Text("Auto-indent") },
+            summary = { Text(if (it) "Automatically indent new lines" else "Do not automatically indent new lines") },
+            rememberState = { autoIndent },
+            defaultValue = autoIndent.value,
+            icon = { Icon(Icons.AutoMirrored.Filled.FormatIndentIncrease, contentDescription = null) },
+            modifier = Modifier.clip(PreferenceShape.Middle).background(backgroundColor)
+        )
+
+        switchPreference(
+            key = DISALLOW_SUGGESTIONS.name,
+            title = { Text("Disable keyboard suggestions") },
+            summary = { Text(if (it) "Hide editor completion suggestions" else "Allow editor completion suggestions") },
+            rememberState = { disallowSuggestions },
+            defaultValue = disallowSuggestions.value,
+            icon = { Icon(Icons.Default.Keyboard, contentDescription = null) },
+            modifier = Modifier.clip(PreferenceShape.Middle).background(backgroundColor)
+        )
+
+        switchPreference(
+            key = FORMAT_PASTED_TEXT.name,
+            title = { Text("Format pasted text") },
+            summary = { Text(if (it) "Format text when it is pasted" else "Keep pasted text unchanged") },
+            rememberState = { formatPastedText },
+            defaultValue = formatPastedText.value,
+            icon = { Icon(Icons.Default.ContentPaste, contentDescription = null) },
+            modifier = Modifier.clip(PreferenceShape.Middle).background(backgroundColor)
+        )
+
+        switchPreference(
+            key = ENHANCED_HOME_END.name,
+            title = { Text("Enhanced Home and End") },
+            summary = { Text(if (it) "Use editor-aware Home and End navigation" else "Use standard Home and End navigation") },
+            rememberState = { enhancedHomeEnd },
+            defaultValue = enhancedHomeEnd.value,
+            icon = { Icon(Icons.Default.Keyboard, contentDescription = null) },
+            modifier = Modifier.clip(PreferenceShape.Middle).background(backgroundColor)
+        )
+
+        switchPreference(
+            key = RESELECT_ON_LONG_PRESS.name,
+            title = { Text("Reselect on long press") },
+            summary = { Text(if (it) "Reselect the current word on long press" else "Keep the current selection on long press") },
+            rememberState = { reselectOnLongPress },
+            defaultValue = reselectOnLongPress.value,
+            icon = { Icon(Icons.Default.TouchApp, contentDescription = null) },
+            modifier = Modifier.clip(PreferenceShape.Middle).background(backgroundColor)
         )
 
         textFieldPreference(

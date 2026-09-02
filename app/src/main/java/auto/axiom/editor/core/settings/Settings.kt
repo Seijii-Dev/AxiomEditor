@@ -139,6 +139,14 @@ object Settings {
         val USE_TAB = booleanPreferencesKey("use_tab")
         val DELETE_LINE_ON_BACKSPACE = booleanPreferencesKey("delete_line_on_backspace")
         val DELETE_INDENT_ON_BACKSPACE = booleanPreferencesKey("delete_indent_on_backspace")
+        val PIN_LINE_NUMBERS = booleanPreferencesKey("pin_line_numbers")
+        val DELETE_MULTI_SPACES = intPreferencesKey("delete_multi_spaces")
+        val SYMBOL_PAIR_AUTO_COMPLETION = booleanPreferencesKey("symbol_pair_auto_completion")
+        val AUTO_INDENT = booleanPreferencesKey("auto_indent")
+        val DISALLOW_SUGGESTIONS = booleanPreferencesKey("disallow_suggestions")
+        val FORMAT_PASTED_TEXT = booleanPreferencesKey("format_pasted_text")
+        val ENHANCED_HOME_END = booleanPreferencesKey("enhanced_home_end")
+        val RESELECT_ON_LONG_PRESS = booleanPreferencesKey("reselect_on_long_press")
         val EDITOR_TEXT_ACTION_WINDOW_EXPAND_THRESHOLD =
             intPreferencesKey("editor_text_action_window_expand_threshold")
 
@@ -191,6 +199,45 @@ object Settings {
         fun rememberDeleteIndentOnBackspace() = rememberPreference(
             key = DELETE_INDENT_ON_BACKSPACE,
             defaultValue = false
+        )
+
+        @Composable
+        fun rememberPinLineNumbers() = rememberPreference(key = PIN_LINE_NUMBERS, defaultValue = false)
+
+        @Composable
+        fun rememberDeleteMultiSpaces() = rememberPreference(key = DELETE_MULTI_SPACES, defaultValue = 1)
+
+        @Composable
+        fun rememberSymbolPairAutoCompletion() = rememberPreference(
+            key = SYMBOL_PAIR_AUTO_COMPLETION,
+            defaultValue = true
+        )
+
+        @Composable
+        fun rememberAutoIndent() = rememberPreference(key = AUTO_INDENT, defaultValue = true)
+
+        @Composable
+        fun rememberDisallowSuggestions() = rememberPreference(
+            key = DISALLOW_SUGGESTIONS,
+            defaultValue = false
+        )
+
+        @Composable
+        fun rememberFormatPastedText() = rememberPreference(
+            key = FORMAT_PASTED_TEXT,
+            defaultValue = false
+        )
+
+        @Composable
+        fun rememberEnhancedHomeEnd() = rememberPreference(
+            key = ENHANCED_HOME_END,
+            defaultValue = true
+        )
+
+        @Composable
+        fun rememberReselectOnLongPress() = rememberPreference(
+            key = RESELECT_ON_LONG_PRESS,
+            defaultValue = true
         )
 
         @Composable

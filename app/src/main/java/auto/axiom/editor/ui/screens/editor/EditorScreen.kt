@@ -79,10 +79,15 @@ import auto.axiom.editor.core.settings.Settings.Editor.rememberColorScheme
 import auto.axiom.editor.core.settings.Settings.Editor.rememberCurrentEditor
 import auto.axiom.editor.core.settings.Settings.Editor.rememberDeleteIndentOnBackspace
 import auto.axiom.editor.core.settings.Settings.Editor.rememberDeleteLineOnBackspace
+import auto.axiom.editor.core.settings.Settings.Editor.rememberDeleteMultiSpaces
+import auto.axiom.editor.core.settings.Settings.Editor.rememberSymbolPairAutoCompletion
+import auto.axiom.editor.core.settings.Settings.Editor.rememberAutoIndent
+import auto.axiom.editor.core.settings.Settings.Editor.rememberDisallowSuggestions
 import auto.axiom.editor.core.settings.Settings.Editor.rememberEditorTextActionWindowExpandThreshold
 import auto.axiom.editor.core.settings.Settings.Editor.rememberFontFamily
 import auto.axiom.editor.core.settings.Settings.Editor.rememberFontLigatures
 import auto.axiom.editor.core.settings.Settings.Editor.rememberFontSize
+import auto.axiom.editor.core.settings.Settings.Editor.rememberFormatPastedText
 import auto.axiom.editor.core.settings.Settings.Editor.rememberIndentSize
 import auto.axiom.editor.core.settings.Settings.Editor.rememberLineNumber
 import auto.axiom.editor.core.settings.Settings.Editor.rememberStickyScroll
@@ -576,6 +581,7 @@ private fun ConfigureEditor(
         }
     }
     val editorTextActionWindowExpandThreshold by rememberEditorTextActionWindowExpandThreshold()
+    val formatPastedText by rememberFormatPastedText()
 
     val editorTextActionWindow = editorTextActionWindow(
         items = items,
@@ -609,6 +615,9 @@ private fun ConfigureEditor(
 
             R.string.editor_action_paste -> {
                 editor.pasteText()
+                if (formatPastedText) {
+                    editor.formatCodeAsync()
+                }
                 editor.setSelection(editor.cursor.rightLine, editor.cursor.rightColumn)
             }
 
@@ -773,6 +782,10 @@ private fun ConfigureMiscSettings(editor: AxiomEditorEditor) {
     val lineNumber by rememberLineNumber()
     val deleteLineOnBackspace by rememberDeleteLineOnBackspace()
     val deleteIndentOnBackspace by rememberDeleteIndentOnBackspace()
+    val deleteMultiSpaces by rememberDeleteMultiSpaces()
+    val symbolPairAutoCompletion by rememberSymbolPairAutoCompletion()
+    val autoIndent by rememberAutoIndent()
+    val disallowSuggestions by rememberDisallowSuggestions()
 
     LaunchedEffect(
         stickyScroll,
@@ -780,7 +793,11 @@ private fun ConfigureMiscSettings(editor: AxiomEditorEditor) {
         wordWrap,
         lineNumber,
         deleteLineOnBackspace,
-        deleteIndentOnBackspace
+        deleteIndentOnBackspace,
+        deleteMultiSpaces,
+        symbolPairAutoCompletion,
+        autoIndent,
+        disallowSuggestions
     ) {
         editor.apply {
             props.stickyScroll = stickyScroll
@@ -788,7 +805,12 @@ private fun ConfigureMiscSettings(editor: AxiomEditorEditor) {
             isWordwrap = wordWrap
             isLineNumberEnabled = lineNumber
             props.deleteEmptyLineFast = deleteLineOnBackspace
-            props.deleteMultiSpaces = if (deleteIndentOnBackspace) -1 else 1
+            props.deleteMultiSpaces = if (deleteIndentOnBackspace) -1 else deleteMultiSpaces
+            (editorLanguage as? auto.axiom.editor.editor.language.textmate.AxiomEditorTMLanguage)?.apply {
+                symbolPairMatch.setEnabled(symbolPairAutoCompletion)
+                isAutoCompleteEnabled = !disallowSuggestions
+                autoIndentEnabled = autoIndent
+            }
         }
     }
 }
