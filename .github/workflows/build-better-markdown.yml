@@ -26,7 +26,10 @@ jobs:
         run: ./gradlew :feature:plugins:assembleRelease --no-daemon
 
       - name: Refresh plugin API JAR
-        run: cp feature/plugins/build/intermediates/full_jar/release/createFullJarRelease/full.jar plugins/Better-MarkDown/app/libs/plugins-api.jar
+        run: |
+          api_aar=$(find feature/plugins/build/outputs/aar -type f -name '*release.aar' | head -n 1)
+          test -n "$api_aar"
+          unzip -p "$api_aar" classes.jar > plugins/Better-MarkDown/app/libs/plugins-api.jar
 
       - name: Build Better MarkDown
         working-directory: plugins/Better-MarkDown
