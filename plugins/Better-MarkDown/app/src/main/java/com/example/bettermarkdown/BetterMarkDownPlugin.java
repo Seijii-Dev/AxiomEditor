@@ -1,6 +1,5 @@
 package com.example.bettermarkdown;
 
-import androidx.annotation.NonNull;
 import com.axiomeditor.plugins.Editor;
 import com.axiomeditor.plugins.Plugin;
 import com.axiomeditor.plugins.PluginContext;
@@ -17,7 +16,7 @@ public final class BetterMarkDownPlugin implements Plugin {
     }
 
     @Override
-    public void onPluginLoaded(@NonNull PluginContext context) {
+    public void onPluginLoaded(PluginContext context) {
         context.addMenu("Markdown: Bold", MENU_BASE + 1,
                 () -> wrapSelection(context, "**", "**", "Select text to make it bold."));
         context.addMenu("Markdown: Italic", MENU_BASE + 2,
@@ -123,7 +122,7 @@ public final class BetterMarkDownPlugin implements Plugin {
         }
 
         @Override
-        public void execute(@NonNull Editor editor) {
+        public void execute(Editor editor) {
             action.run();
         }
     }
