@@ -19,6 +19,7 @@ import android.annotation.SuppressLint
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -53,6 +54,9 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import auto.axiom.editor.compose.LocalDarkMode
+import auto.axiom.editor.compose.ui.graphics.rememberSvgAssetImageBitmap
+import auto.axiom.editor.core.FileIcons
 import auto.axiom.editor.ui.screens.editor.EditorViewModel
 import kiwi.orbit.compose.icons.Icons
 import kiwi.orbit.compose.ui.controls.Icon
@@ -96,6 +100,12 @@ fun EditorTab(
                     animationSpec = tween(150),
                     label = "tab_bg"
                 )
+                val isLight = LocalDarkMode.current.not()
+                val fileIconPath = FileIcons.getSvgIconForFile(
+                    filePath = file.file.path,
+                    isLight = isLight,
+                )
+
                 val contentAlpha by animateColorAsState(
                     targetValue = if (isSelected)
                         MaterialTheme.colorScheme.onSurface
@@ -137,6 +147,12 @@ fun EditorTab(
                                     .background(MaterialTheme.colorScheme.primary)
                             )
                         }
+
+                        Image(
+                            bitmap = rememberSvgAssetImageBitmap(fileIconPath),
+                            contentDescription = "${file.file.name} icon",
+                            modifier = Modifier.size(16.dp),
+                        )
 
                         Text(
                             text = file.file.name,
