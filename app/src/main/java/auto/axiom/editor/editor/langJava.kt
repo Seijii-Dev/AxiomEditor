@@ -80,7 +80,7 @@ class TsJavaSpanFactory(
 
     companion object {
         @JvmStatic
-        private val HEX_REGEX = "#\\b([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\\b".toRegex()
+        private val HEX_REGEX = Regex("#\\b([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\\b")
     }
 
     override fun createSpans(
@@ -108,6 +108,7 @@ class TsJavaSpanFactory(
         val spans = mutableListOf<Span>()
         var s = -1
         var e = -1
+        
         results.forEach { result ->
             if (e != -1 && e < result.range.first) {
                 // there is some interval between previous color span
@@ -127,22 +128,27 @@ class TsJavaSpanFactory(
             e = result.range.last
 
             val color = try {
-                var str = result.groupValues[1]
-                if (str.length == 3) {
-                    // HEX color is in the form of #FFF
-                    // convert it to #FFFFFF format (6 character long)
-                    val r = str[0]
-                    val g = str[1]
-                    val b = str[2]
-                    str = "$r$r$g$g$b$b"
+                // Use StringBuilder to avoid string concatenation overhead
+                val hexString = result.groupValues[1]
+                val normalizedHex = when (hexString.length) {
+                    3 -> {
+                        // HEX color is in the form of #FFF
+                        // convert it to #FFFFFF format (6 character long)
+                        StringBuilder(6).apply {
+                            val r = hexString[0]
+                            val g = hexString[1]
+                            val b = hexString[2]
+                            append(r).append(r)
+                            append(g).append(g)
+                            append(b).append(b)
+                        }.toString()
+                    }
+                    6 -> "FF$hexString" // Prepend alpha value using template
+                    8 -> hexString
+                    else -> return@forEach
                 }
 
-                if (str.length == 6) {
-                    // Prepend alpha value
-                    str = "FF${str}"
-                }
-
-                java.lang.Long.parseLong(str, 16)
+                java.lang.Long.parseLong(normalizedHex, 16)
             } catch (e: Exception) {
                 Log.e("JavaSpanFactory", "Failed to parse hex color. color=$text", e)
                 return@forEach
