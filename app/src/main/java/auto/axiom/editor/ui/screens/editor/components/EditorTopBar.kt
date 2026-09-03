@@ -51,9 +51,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -119,6 +119,7 @@ fun EditorTopBar(
 ) {
     val scope = rememberCoroutineScope()
     val drawerState = LocalEditorDrawerState.current
+    val drawerNavController = LocalEditorDrawerNavController.current
     val commandPaletteManager = LocalCommandPaletteManager.current
     val menuManager = LocalMenuManager.current
 
@@ -457,12 +458,12 @@ fun EditorTopBar(
                         text = { Text(stringResource(id = strings.git)) },
                         leadingIcon = {
                             Icon(
-                                imageVector = vectorResource(drawables.ic_git),
+                                imageVector = ImageVector.vectorResource(drawables.ic_git),
                                 contentDescription = null
                             )
                         },
                         onClick = {
-                            LocalEditorDrawerNavController.current.navigateSingleTop(EditorDrawerScreens.GitManager)
+                            drawerNavController.navigateSingleTop(EditorDrawerScreens.GitManager)
                             scope.launch {
                                 drawerState.open()
                             }
