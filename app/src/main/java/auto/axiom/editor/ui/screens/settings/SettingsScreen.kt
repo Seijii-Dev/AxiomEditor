@@ -21,9 +21,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Public
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,7 +31,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -42,13 +38,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
-import auto.axiom.editor.activities.AboutActivity
-import auto.axiom.editor.activities.PluginsActivity
-import auto.axiom.editor.app.BaseApplication
 import auto.axiom.editor.app.strings
 import auto.axiom.editor.extensions.isNotNull
 import auto.axiom.editor.extensions.isNull
-import auto.axiom.editor.extensions.open
 import auto.axiom.editor.github.User
 import auto.axiom.editor.github.auth.Api
 import auto.axiom.editor.resources.R
@@ -60,7 +52,6 @@ import me.zhanghai.compose.preference.preferenceCategory
 
 @Composable
 fun SettingsScreen(modifier: Modifier = Modifier) {
-    val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val navController = rememberNavController()
 
@@ -102,15 +93,6 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         summary = { Text(stringResource(strings.pref_configure_file_explorer_summary)) },
                         onClick = {
                             navController.navigateSingleTop(SettingScreens.File)
-                        }
-                    )
-
-                    preference(
-                        key = "pref_configure_plugins_key",
-                        title = { Text(stringResource(strings.pref_configure_plugins)) },
-                        summary = { Text(stringResource(strings.pref_configure_plugins_summary)) },
-                        onClick = {
-                            context.open(PluginsActivity::class.java)
                         }
                     )
 
@@ -157,29 +139,6 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         }
                     )
 
-                    item { HorizontalDivider(thickness = 2.dp) }
-
-                    preferenceCategory(
-                        key = "pref_category_about",
-                        title = { Text(stringResource(strings.pref_category_about)) }
-                    )
-
-                    preference(
-                        key = "pref_about_github_key",
-                        title = { Text(stringResource(strings.pref_about_github)) },
-                        summary = { Text(stringResource(strings.pref_about_github_summary)) },
-                        onClick = {
-                            uriHandler.openUri(BaseApplication.REPO_URL)
-                        }
-                    )
-
-                    preference(
-                        key = "about_axiomeditor",
-                        title = { Text(stringResource(strings.open_source_licences)) },
-                        onClick = {
-                            context.open(AboutActivity::class.java)
-                        }
-                    )
                 }
             }
         }
