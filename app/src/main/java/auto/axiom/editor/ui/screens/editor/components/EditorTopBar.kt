@@ -567,17 +567,7 @@ fun EditorTopBar(
     )
 
     if (showAiChat) {
-        AiChatSheet(
-            onDismissRequest = { showAiChat = false },
-            onConfirmRewrite = { replacement ->
-                selectedEditor?.editor?.setText(replacement, null)
-                selectedEditor?.setModified(true)
-                selectedMonacoEditor?.let {
-                    it.text = replacement
-                    selectedFile?.file?.let { file -> editorViewModel.setModified(file, true) }
-                }
-            }
-        )
+        AiChatSheet(onDismissRequest = { showAiChat = false })
     }
 }
 
