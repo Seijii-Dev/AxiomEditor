@@ -67,7 +67,7 @@ fun AiResponseSheet(
     onApplyCode: ((String) -> Unit)? = null,
     subtitle: (@Composable () -> Unit)? = null,
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartialExpansion = false)
+    val sheetState = rememberModalBottomSheetState()
     val clipboard = LocalClipboardManager.current
 
     ModalBottomSheet(
