@@ -88,15 +88,6 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     )
 
                     preference(
-                        key = "pref_configure_ai_key",
-                        title = { Text("AI Settings") },
-                        summary = { Text("Configure OpenRouter and AI generation") },
-                        onClick = {
-                            navController.navigateSingleTop(SettingScreens.AI)
-                        }
-                    )
-
-                    preference(
                         key = "pref_configure_file_key",
                         title = { Text(stringResource(strings.pref_configure_file_explorer)) },
                         summary = { Text(stringResource(strings.pref_configure_file_explorer_summary)) },
@@ -155,15 +146,6 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         composable<SettingScreens.General> {
             ProvidePreferenceLocals {
                 GeneralSettingsScreen(
-                    modifier = modifier,
-                    onNavigateUp = navController::navigateUp
-                )
-            }
-        }
-
-        composable<SettingScreens.AI> {
-            ProvidePreferenceLocals {
-                AiSettingsScreen(
                     modifier = modifier,
                     onNavigateUp = navController::navigateUp
                 )

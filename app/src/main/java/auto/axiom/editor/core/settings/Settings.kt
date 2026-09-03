@@ -247,42 +247,6 @@ object Settings {
         )
     }
 
-    object AI {
-        val OPENROUTER_API_KEY = stringPreferencesKey("openrouter_api_key")
-        val OPENROUTER_MODEL = stringPreferencesKey("openrouter_model")
-        val OPENROUTER_BASE_URL = stringPreferencesKey("openrouter_base_url")
-        val TEMPERATURE = floatPreferencesKey("ai_temperature")
-        val MAX_OUTPUT_TOKENS = intPreferencesKey("ai_max_output_tokens")
-        val STREAM_RESPONSES = booleanPreferencesKey("ai_stream_responses")
-
-        @Composable
-        fun rememberOpenRouterApiKey() = rememberPreference(key = OPENROUTER_API_KEY, defaultValue = "")
-
-        @Composable
-        fun rememberOpenRouterModel() = rememberPreference(
-            key = OPENROUTER_MODEL,
-            defaultValue = "qwen/qwen3.8-flash"
-        )
-
-        @Composable
-        fun rememberOpenRouterBaseUrl() = rememberPreference(
-            key = OPENROUTER_BASE_URL,
-            defaultValue = "https://openrouter.ai/api/v1/"
-        )
-
-        @Composable
-        fun rememberAiTemperature() = rememberPreference(key = TEMPERATURE, defaultValue = 0.3f)
-
-        @Composable
-        fun rememberAiMaxOutputTokens() = rememberPreference(
-            key = MAX_OUTPUT_TOKENS,
-            defaultValue = 4096
-        )
-
-        @Composable
-        fun rememberAiStreamResponses() = rememberPreference(key = STREAM_RESPONSES, defaultValue = true)
-    }
-
     object EditorTabs {
         val AUTO_SAVE = booleanPreferencesKey("auto_save")
 

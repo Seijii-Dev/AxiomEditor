@@ -55,6 +55,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.ai.client.generativeai.type.GenerateContentResponse
 import com.itsvks.monaco.MonacoEditor
 import com.itsvks.monaco.MonacoLanguage
 import com.itsvks.monaco.MonacoTheme
@@ -73,7 +74,7 @@ import auto.axiom.editor.activities.Editor.LocalEditorSnackbarHostState
 import auto.axiom.editor.compose.ui.EditorTab
 import auto.axiom.editor.compose.ui.dialog.ConfirmDialog
 import auto.axiom.editor.core.EventManager
-import auto.axiom.editor.core.ai.OpenRouter
+import auto.axiom.editor.core.ai.Gemini
 import auto.axiom.editor.core.settings.Settings.Editor.rememberColorScheme
 import auto.axiom.editor.core.settings.Settings.Editor.rememberCurrentEditor
 import auto.axiom.editor.core.settings.Settings.Editor.rememberDeleteIndentOnBackspace
@@ -174,8 +175,8 @@ fun EditorScreen(
     val toastHostState = LocalEditorSnackbarHostState.current
     val commandPaletteManager = LocalCommandPaletteManager.current
 
-    var codeExplanationResponse: String? by remember { mutableStateOf(null) }
-    var importComponentResponse: String? by remember { mutableStateOf(null) }
+    var codeExplanationResponse: GenerateContentResponse? by remember { mutableStateOf(null) }
+    var importComponentResponse: GenerateContentResponse? by remember { mutableStateOf(null) }
 
     codeExplanationResponse?.let {
         CodeExplanationSheet(
@@ -511,8 +512,8 @@ private fun ConfigureMonacoEditor(
 @Composable
 fun SoraEditor(
     editorView: CodeEditorView,
-    onExplainCodeResponse: (String) -> Unit = {},
-    onImportComponentResponse: (String) -> Unit = {}
+    onExplainCodeResponse: (GenerateContentResponse) -> Unit = {},
+    onImportComponentResponse: (GenerateContentResponse) -> Unit = {}
 ) {
     val context = LocalContext.current
     val toastHostState = LocalToastHostState.current
@@ -530,11 +531,7 @@ fun SoraEditor(
                     }
                 }
             ) { _, _ ->
-                OpenRouter.generate(
-                    context,
-                    "Explain this code clearly, including its purpose, flow, and potential issues.\n\n${code}",
-                    "You are Axiom Editor’s code explanation assistant."
-                )
+                Gemini.explainCode(code.toString())
                     .onSuccess(onExplainCodeResponse)
                     .onFailure {
                         scope.launch {
@@ -557,11 +554,7 @@ fun SoraEditor(
                     }
                 }
             ) { _, _ ->
-                OpenRouter.generate(
-                    context,
-                    "Analyze this Jetpack Compose code and provide the required imports and corrected code. Return only actionable Markdown.\n\n${code}",
-                    "You are Axiom Editor’s Jetpack Compose assistant."
-                )
+                Gemini.importComponents(code.toString())
                     .onSuccess(onImportComponentResponse)
                     .onFailure {
                         scope.launch {

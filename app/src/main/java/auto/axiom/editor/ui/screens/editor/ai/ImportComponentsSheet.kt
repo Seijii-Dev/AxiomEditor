@@ -22,12 +22,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.google.ai.client.generativeai.type.GenerateContentResponse
 import auto.axiom.editor.app.strings
 import dev.jeziellago.compose.markdowntext.MarkdownText
 
 @Composable
 fun ImportComponentsSheet(
-    response: String,
+    response: GenerateContentResponse,
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier
 ) {
