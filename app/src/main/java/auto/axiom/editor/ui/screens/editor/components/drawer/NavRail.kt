@@ -19,29 +19,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Folder
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material.icons.rounded.Folder
-import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material.icons.rounded.Terminal
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastForEachIndexed
 import auto.axiom.editor.activities.Editor.LocalEditorDrawerNavController
-import auto.axiom.editor.activities.SettingsActivity
-import auto.axiom.editor.activities.TerminalActivity
-import auto.axiom.editor.app.drawables
-import auto.axiom.editor.extensions.open
 import auto.axiom.editor.resources.R
 import auto.axiom.editor.ui.navigateSingleTop
 import auto.axiom.editor.ui.screens.EditorDrawerScreens
@@ -51,57 +39,32 @@ fun NavRail(
     modifier: Modifier = Modifier,
     selectedItemIndex: Int
 ) {
-    val navigationRailItems = listOf(
-        stringResource(R.string.files),
-        stringResource(R.string.git),
-        stringResource(R.string.terminal),
-        stringResource(R.string.settings)
-    )
-    val navRailItemIconsUnselected = listOf(
-        Icons.Outlined.Folder,
-        ImageVector.vectorResource(drawables.ic_git),
-        Icons.Outlined.Terminal,
-        Icons.Outlined.Settings
-    )
-    val navRailItemIconsSelected = listOf(
-        Icons.Rounded.Folder,
-        ImageVector.vectorResource(drawables.ic_git),
-        Icons.Rounded.Terminal,
-        Icons.Rounded.Settings
-    )
-
     val context = LocalContext.current
     val navController = LocalEditorDrawerNavController.current
+    val filesLabel = context.getString(R.string.files)
 
     NavigationRail(
         modifier = modifier.widthIn(max = 60.dp)
     ) {
-        navigationRailItems.fastForEachIndexed { index, name ->
-            NavigationRailItem(
-                icon = {
-                    Icon(
-                        imageVector = if (selectedItemIndex == index) navRailItemIconsSelected[index] else navRailItemIconsUnselected[index],
-                        contentDescription = name,
-                        modifier = Modifier.size(20.dp),
-                    )
-                },
-                label = {
-                    Text(
-                        text = name,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                },
-                alwaysShowLabel = true,
-                selected = selectedItemIndex == index,
-                onClick = {
-                    when (index) {
-                        0 -> navController.navigateSingleTop(EditorDrawerScreens.FileExplorer)
-                        1 -> navController.navigateSingleTop(EditorDrawerScreens.GitManager)
-                        2 -> context.open(TerminalActivity::class.java)
-                        3 -> context.open(SettingsActivity::class.java)
-                    }
-                }
-            )
-        }
+        NavigationRailItem(
+            icon = {
+                Icon(
+                    imageVector = if (selectedItemIndex == 0) Icons.Rounded.Folder else Icons.Outlined.Folder,
+                    contentDescription = filesLabel,
+                    modifier = Modifier.size(20.dp),
+                )
+            },
+            label = {
+                Text(
+                    text = filesLabel,
+                    overflow = TextOverflow.Ellipsis
+                )
+            },
+            alwaysShowLabel = true,
+            selected = selectedItemIndex == 0,
+            onClick = {
+                navController.navigateSingleTop(EditorDrawerScreens.FileExplorer)
+            }
+        )
     }
 }

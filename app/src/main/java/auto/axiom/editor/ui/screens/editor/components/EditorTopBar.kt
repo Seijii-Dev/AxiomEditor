@@ -35,6 +35,8 @@ import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.Terminal
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
@@ -65,9 +67,12 @@ import com.blankj.utilcode.util.ToastUtils
 import com.blankj.utilcode.util.UriUtils
 import com.hzy.libp7zip.P7ZipApi
 import auto.axiom.editor.activities.Editor.LocalCommandPaletteManager
+import auto.axiom.editor.activities.Editor.LocalEditorDrawerNavController
 import auto.axiom.editor.activities.Editor.LocalEditorDrawerState
 import auto.axiom.editor.activities.MarkdownPreviewActivity
+import auto.axiom.editor.activities.SettingsActivity
 import auto.axiom.editor.activities.TerminalActivity
+import auto.axiom.editor.app.drawables
 import auto.axiom.editor.app.strings
 import auto.axiom.editor.compose.LocalMenuManager
 import auto.axiom.editor.core.EventManager
@@ -82,6 +87,8 @@ import auto.axiom.editor.file.wrapFile
 import auto.axiom.editor.keyboard.model.Command.Companion.newCommand
 import auto.axiom.editor.preferences.pythonDownloaded
 import auto.axiom.editor.resources.R
+import auto.axiom.editor.ui.navigateSingleTop
+import auto.axiom.editor.ui.screens.EditorDrawerScreens
 import auto.axiom.editor.ui.screens.editor.EditorViewModel
 import auto.axiom.editor.ui.screens.editor.components.view.CodeEditorView
 import auto.axiom.editor.utils.isFileRunnable
@@ -442,6 +449,51 @@ fun EditorTopBar(
                         },
                         trailingIcon = {
                             Text("Ctrl+Shift+P")
+                        }
+                    )
+
+                    DropdownMenuItem(
+                        text = { Text(stringResource(id = strings.git)) },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = androidx.compose.ui.res.vectorResource(drawables.ic_git),
+                                contentDescription = null
+                            )
+                        },
+                        onClick = {
+                            LocalEditorDrawerNavController.current.navigateSingleTop(EditorDrawerScreens.GitManager)
+                            scope.launch {
+                                drawerState.open()
+                            }
+                            showMenu = false
+                        }
+                    )
+
+                    DropdownMenuItem(
+                        text = { Text(stringResource(id = strings.terminal)) },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Rounded.Terminal,
+                                contentDescription = null
+                            )
+                        },
+                        onClick = {
+                            context.open(TerminalActivity::class.java)
+                            showMenu = false
+                        }
+                    )
+
+                    DropdownMenuItem(
+                        text = { Text(stringResource(id = strings.settings)) },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Rounded.Settings,
+                                contentDescription = null
+                            )
+                        },
+                        onClick = {
+                            context.open(SettingsActivity::class.java)
+                            showMenu = false
                         }
                     )
 
