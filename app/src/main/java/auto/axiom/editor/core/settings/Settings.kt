@@ -255,6 +255,13 @@ object Settings {
         val MAX_OUTPUT_TOKENS = intPreferencesKey("ai_max_output_tokens")
         val STREAM_RESPONSES = booleanPreferencesKey("ai_stream_responses")
 
+        // ── Anthropic / Claude support ────────────────────────────────────
+        /** "openrouter" (default) or "anthropic" */
+        val AI_PROVIDER = stringPreferencesKey("ai_provider")
+        val ANTHROPIC_API_KEY = stringPreferencesKey("anthropic_api_key")
+        /** e.g. "claude-sonnet-4-6", "claude-opus-5" */
+        val ANTHROPIC_MODEL = stringPreferencesKey("anthropic_model")
+
         @Composable
         fun rememberOpenRouterApiKey() = rememberPreference(key = OPENROUTER_API_KEY, defaultValue = "")
 
@@ -281,6 +288,15 @@ object Settings {
 
         @Composable
         fun rememberAiStreamResponses() = rememberPreference(key = STREAM_RESPONSES, defaultValue = true)
+
+        @Composable
+        fun rememberAiProvider() = rememberPreference(key = AI_PROVIDER, defaultValue = "openrouter")
+
+        @Composable
+        fun rememberAnthropicApiKey() = rememberPreference(key = ANTHROPIC_API_KEY, defaultValue = "")
+
+        @Composable
+        fun rememberAnthropicModel() = rememberPreference(key = ANTHROPIC_MODEL, defaultValue = "claude-sonnet-4-6")
     }
 
     object EditorTabs {
