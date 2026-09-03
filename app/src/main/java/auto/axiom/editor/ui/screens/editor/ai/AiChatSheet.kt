@@ -161,7 +161,7 @@ fun AiChatSheet(
     val context = LocalContext.current
     val clipboard = LocalClipboardManager.current
     val scope = rememberCoroutineScope()
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberModalBottomSheetState(skipPartialExpansion = true)
     val listState = rememberLazyListState()
 
     val messages = remember { mutableStateListOf<ChatBubble>() }
@@ -295,7 +295,7 @@ fun AiChatSheet(
                         }
 
                         // Scroll-to-bottom FAB
-                        androidx.compose.animation.AnimatedVisibility(
+                        AnimatedVisibility(
                             visible = !atBottom,
                             modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp)
                         ) {
