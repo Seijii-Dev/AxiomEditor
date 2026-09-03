@@ -165,7 +165,7 @@ object Settings {
         fun rememberIndentSize() = rememberPreference(key = INDENT_SIZE, defaultValue = 4)
 
         @Composable
-        fun rememberFontFamily() = rememberPreference(key = FONT_FAMILY, defaultValue = "")
+        fun rememberFontFamily() = rememberPreference(key = FONT_FAMILY, defaultValue = "JetBrains Mono")
 
         @Composable
         fun rememberColorScheme() = rememberPreference(key = COLOR_SCHEME, defaultValue = "")
