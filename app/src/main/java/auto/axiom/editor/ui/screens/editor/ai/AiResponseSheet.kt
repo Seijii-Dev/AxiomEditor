@@ -1,119 +1,62 @@
-/*
- * This file is part of Axiom Editor.
- *
- * Axiom Editor is free software: you can redistribute it and/or modify it under the terms of
- * the GNU General Public License as published by the Free Software Foundation, either version 3 of
- * the License, or (at your option) any later version.
- *
- * Axiom Editor is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with Axiom Editor.
- * If not, see <https://www.gnu.org/licenses/>.
- */
-
 package auto.axiom.editor.ui.screens.editor.ai
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.QuestionMark
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.google.ai.client.generativeai.type.GenerateContentResponse
-import com.google.ai.client.generativeai.type.asTextOrNull
 import dev.jeziellago.compose.markdowntext.MarkdownText
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AiResponseSheet(
     title: String,
-    response: GenerateContentResponse,
+    response: String,
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
     subtitle: (@Composable () -> Unit)? = null,
 ) {
-    val text = response.candidates[0].content.parts[0].asTextOrNull().toString()
-    val usageMetadata = response.usageMetadata
-
-    var showUsageMetadata by remember { mutableStateOf(false) }
-
+    val clipboard = LocalClipboardManager.current
     ModalBottomSheet(onDismissRequest = onDismissRequest, modifier = modifier) {
         Column(
             modifier = Modifier
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 10.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = 16.dp)
-            ) {
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 4.dp)
-                    )
-
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Icon(Icons.Default.SmartToy, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                Column(modifier = Modifier.weight(1f).padding(start = 10.dp)) {
+                    Text(title, style = MaterialTheme.typography.titleLarge)
                     subtitle?.invoke()
                 }
-
-                AnimatedVisibility(visible = !showUsageMetadata) {
-                    IconButton(
-                        onClick = { showUsageMetadata = !showUsageMetadata },
-                        modifier = Modifier.size(12.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.QuestionMark,
-                            contentDescription = null
-                        )
-                    }
-                }
-
-                AnimatedVisibility(visible = showUsageMetadata) {
-                    Text(
-                        text = "total: ${usageMetadata?.totalTokenCount}, prompt: ${usageMetadata?.promptTokenCount}, candidates: ${usageMetadata?.candidatesTokenCount}",
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.W200,
-                        modifier = Modifier.clickable(
-                            onClick = { showUsageMetadata = !showUsageMetadata },
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null
-                        )
-                    )
+                IconButton(onClick = { clipboard.setText(AnnotatedString(response)) }) {
+                    Icon(Icons.Default.ContentCopy, contentDescription = "Copy response")
                 }
             }
-
             MarkdownText(
-                markdown = text,
-                isTextSelectable = true
+                markdown = response,
+                isTextSelectable = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(18.dp))
+                    .padding(16.dp)
             )
         }
     }

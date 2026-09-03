@@ -32,5 +32,8 @@ sealed class SettingScreens {
     data object Editor : SettingScreens()
 
     @Serializable
+    data object AI : SettingScreens()
+
+    @Serializable
     data object MonacoEditor : SettingScreens()
 }

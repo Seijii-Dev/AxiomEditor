@@ -187,7 +187,6 @@ class AxiomEditorTMLanguage protected constructor(
 
                 grammar?.name?.let { grammarName ->
                     println(grammarName)
-//          Gemini.completeCode(
 //            CompletionMetadata(
 //              language = grammarName,
 //              textBeforeCursor = ref.subContent(
@@ -204,7 +203,6 @@ class AxiomEditorTMLanguage protected constructor(
 //              ).toString()
 //            )
 //          ).onSuccess {
-//            val response = Gemini.removeBackticksFromMarkdownCodeBlock(
 //              it.candidates[0].content.parts[0].asTextOrNull()
 //            )
 //            println(response)

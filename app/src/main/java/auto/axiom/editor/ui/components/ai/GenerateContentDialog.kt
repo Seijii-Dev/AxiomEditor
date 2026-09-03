@@ -31,10 +31,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.blankj.utilcode.util.ToastUtils
-import com.google.ai.client.generativeai.type.asTextOrNull
 import com.itsvks.monaco.MonacoEditor
 import auto.axiom.editor.app.strings
-import auto.axiom.editor.core.ai.Gemini
+import auto.axiom.editor.core.ai.OpenRouter
 import auto.axiom.editor.ui.screens.editor.components.view.CodeEditorView
 import auto.axiom.editor.utils.launchWithProgressDialog
 import kotlinx.coroutines.Dispatchers
@@ -83,18 +82,16 @@ fun GenerateContentDialog(
                                 }
                             }
                         ) { _, _ ->
-                            Gemini.generateCode(
-                                prompt = prompt,
-                                fileExtension = fileExtension
+                            OpenRouter.generate(
+                                context = context,
+                                prompt = "Write code based on this request${if (!fileExtension.isNullOrEmpty()) " for file extension $fileExtension" else ""}. Return only code.\n\n$prompt",
+                                systemPrompt = "You are Axiom Editor’s code generation assistant."
                             ).onSuccess { response ->
-                                val text =
-                                    response.candidates.first().content.parts.first().asTextOrNull()
-
                                 withContext(Dispatchers.Main) {
                                     if (editor is MonacoEditor) {
                                         val position = editor.position
                                         editor.insert(
-                                            text = Gemini.removeBackticksFromMarkdownCodeBlock(text),
+                                            text = OpenRouter.stripMarkdownFence(response),
                                             position = position
                                         )
                                     } else if (editor is CodeEditorView) {
@@ -104,7 +101,7 @@ fun GenerateContentDialog(
                                         content.insert(
                                             cursor.leftLine,
                                             cursor.leftColumn,
-                                            Gemini.removeBackticksFromMarkdownCodeBlock(text)
+                                            OpenRouter.stripMarkdownFence(response)
                                         )
                                     }
                                 }
