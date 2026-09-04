@@ -80,6 +80,7 @@ import auto.axiom.editor.file.extension
 import auto.axiom.editor.file.wrapFile
 import auto.axiom.editor.github.auth.Api
 import auto.axiom.editor.github.auth.UserInfo
+import auto.axiom.editor.lsp.LanguageServiceManager
 import auto.axiom.editor.keyboard.CommandPaletteManager
 import auto.axiom.editor.keyboard.model.Command.Companion.newCommand
 import auto.axiom.editor.plugins.PluginLoader
@@ -133,6 +134,13 @@ class EditorActivity : BaseComposeActivity() {
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onContentChangeEvent(event: OnContentChangeEvent) {
         Log.d("EditorActivity", "Content change event received: ${event.file?.name}")
+        val file = event.file ?: return
+        val text = when (val editor = editorViewModel.getSelectedEditor()) {
+            is CodeEditorView -> editor.editor.text.toString()
+            is MonacoEditor -> editor.text
+            else -> return
+        }
+        LanguageServiceManager.update(file.path, text)
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

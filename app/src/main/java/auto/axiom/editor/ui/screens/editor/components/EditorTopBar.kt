@@ -92,6 +92,7 @@ import auto.axiom.editor.resources.R
 import auto.axiom.editor.ui.navigateSingleTop
 import auto.axiom.editor.ui.screens.EditorDrawerScreens
 import auto.axiom.editor.ui.screens.editor.EditorViewModel
+import auto.axiom.editor.lsp.LanguageServiceManager
 import auto.axiom.editor.ui.screens.editor.components.view.CodeEditorView
 import auto.axiom.editor.utils.isFileRunnable
 import auto.axiom.editor.utils.launchWithProgressDialog
@@ -136,6 +137,13 @@ fun EditorTopBar(
 
     val selectedEditor = selectedFile?.let { editors[it.file.path] }
     val selectedMonacoEditor = selectedFile?.let { monacoEditors[it.file.path] }
+
+    LaunchedEffect(selectedFile?.file?.path, selectedEditor, selectedMonacoEditor) {
+        selectedFile?.file?.path?.let { path ->
+            val text = selectedEditor?.editor?.text?.toString() ?: selectedMonacoEditor?.text ?: return@LaunchedEffect
+            LanguageServiceManager.open(path, text)
+        }
+    }
 
     var canUndo by remember { mutableStateOf(false) }
     var canRedo by remember { mutableStateOf(false) }
