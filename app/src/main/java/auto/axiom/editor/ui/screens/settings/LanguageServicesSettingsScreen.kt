@@ -118,7 +118,7 @@ fun LanguageServicesSettingsScreen(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 listOf(
-                    "Python — Pyright" to "apk add python3 py3-pip && pip install pyright",
+                    "Python — Pyright" to "apk add python3 py3-pip py3-virtualenv && python3 -m venv \$HOME/.venvs/pyright && \$HOME/.venvs/pyright/bin/python -m pip install --upgrade pip pyright",
                     "JavaScript / TypeScript — TypeScript LS" to "apk add nodejs npm && npm install -g typescript typescript-language-server",
                     "Java — Eclipse JDT LS" to "apk add openjdk17-jre"
                 ).forEach { (name, command) ->
