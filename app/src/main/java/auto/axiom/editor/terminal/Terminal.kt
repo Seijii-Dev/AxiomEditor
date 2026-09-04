@@ -208,6 +208,11 @@ fun Terminal(modifier: Modifier = Modifier, terminalActivity: TerminalActivity) 
 
                                     session.updateTerminalSessionClient(client)
                                     attachSession(session)
+                                    terminalActivity.intent.getStringExtra(TerminalActivity.KEY_INITIAL_COMMAND)
+                                        ?.takeIf { it.isNotBlank() }
+                                        ?.let { command ->
+                                            postDelayed({ session.write("$command\n") }, 350L)
+                                        }
                                     setTypeface(
                                         Typeface.createFromAsset(
                                             context.assets,

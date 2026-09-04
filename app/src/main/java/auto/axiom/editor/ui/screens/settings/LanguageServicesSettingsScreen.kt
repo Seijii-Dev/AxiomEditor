@@ -1,11 +1,18 @@
 package auto.axiom.editor.ui.screens.settings
 
+import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.weight
+import androidx.compose.material3.Button
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Code
@@ -19,6 +26,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import auto.axiom.editor.activities.TerminalActivity
 import auto.axiom.editor.core.settings.Settings.LanguageServices.rememberExternalEnabled
 import auto.axiom.editor.core.settings.Settings.LanguageServices.rememberExternalHost
 import auto.axiom.editor.core.settings.Settings.LanguageServices.rememberExternalPort
@@ -38,6 +47,7 @@ fun LanguageServicesSettingsScreen(
     val external = rememberExternalEnabled()
     val host = rememberExternalHost()
     val port = rememberExternalPort()
+    val context = LocalContext.current
     val background = MaterialTheme.colorScheme.surfaceVariant
 
     LaunchedEffect(external.value, host.value, port.value) {
@@ -98,6 +108,32 @@ fun LanguageServicesSettingsScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(16.dp)
             )
+        }
+        item {
+            Text("Semantic language servers", style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp))
+        }
+        item {
+            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                Text("Install runtimes into Axiom’s built-in Linux environment. The terminal will show progress.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                listOf(
+                    "Python — Pyright" to "apk add python3 py3-pip && pip install pyright",
+                    "JavaScript / TypeScript — TypeScript LS" to "apk add nodejs npm && npm install -g typescript typescript-language-server",
+                    "Java — Eclipse JDT LS" to "apk add openjdk17-jre"
+                ).forEach { (name, command) ->
+                    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+                        Text(name, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                        Spacer(Modifier.width(8.dp))
+                        Button(onClick = {
+                            context.startActivity(Intent(context, TerminalActivity::class.java).apply {
+                                putExtra(TerminalActivity.KEY_INITIAL_COMMAND, command)
+                            })
+                        }) { Text("Install") }
+                    }
+                }
+            }
         }
     }
 }

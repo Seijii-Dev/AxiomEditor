@@ -386,6 +386,7 @@ class TerminalActivity : ComponentActivity() {
     companion object {
         const val KEY_WORKING_DIRECTORY = "terminal_workingDirectory"
         const val KEY_PYTHON_FILE_PATH = "terminal_python_file"
+        const val KEY_INITIAL_COMMAND = "terminal_initial_command"
     }
 }
 
