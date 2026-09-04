@@ -290,8 +290,7 @@ class AxiomEditorTMLanguage protected constructor(
 //                )
 //              )
 //            }
-//          }.onFailure(Throwable::printStackTrace)
-            }
+//          ).onFailure(Throwable::printStackTrace)
         }
     }
 
