@@ -35,7 +35,6 @@ import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material.icons.rounded.SmartToy
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Terminal
 import androidx.compose.material3.DropdownMenu
@@ -92,7 +91,6 @@ import auto.axiom.editor.preferences.pythonDownloaded
 import auto.axiom.editor.resources.R
 import auto.axiom.editor.ui.navigateSingleTop
 import auto.axiom.editor.ui.screens.EditorDrawerScreens
-import auto.axiom.editor.ui.screens.editor.ai.AiChatSheet
 import auto.axiom.editor.ui.screens.editor.EditorViewModel
 import auto.axiom.editor.ui.screens.editor.components.view.CodeEditorView
 import auto.axiom.editor.utils.isFileRunnable
@@ -127,7 +125,6 @@ fun EditorTopBar(
     val menuManager = LocalMenuManager.current
 
     var showMenu by remember { mutableStateOf(false) }
-    var showAiChat by remember { mutableStateOf(false) }
     val showFileMenu = remember { mutableStateOf(false) }
 
     val editors = editorViewModel.editors
@@ -459,15 +456,6 @@ fun EditorTopBar(
                     )
 
                     DropdownMenuItem(
-                        text = { Text("AI Chat") },
-                        leadingIcon = { Icon(Icons.Rounded.SmartToy, contentDescription = null) },
-                        onClick = {
-                            showAiChat = true
-                            showMenu = false
-                        }
-                    )
-
-                    DropdownMenuItem(
                         text = { Text(stringResource(id = strings.git)) },
                         leadingIcon = {
                             Icon(
@@ -565,20 +553,6 @@ fun EditorTopBar(
             }
         }
     )
-
-    if (showAiChat) {
-        AiChatSheet(
-            onDismissRequest = { showAiChat = false },
-            onConfirmRewrite = { replacement ->
-                selectedEditor?.editor?.setText(replacement, null)
-                selectedEditor?.setModified(true)
-                selectedMonacoEditor?.let {
-                    it.text = replacement
-                    selectedFile?.file?.let { file -> editorViewModel.setModified(file, true) }
-                }
-            }
-        )
-    }
 }
 
 @Composable

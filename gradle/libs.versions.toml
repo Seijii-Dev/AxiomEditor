@@ -5,6 +5,7 @@ browser = "1.8.0"
 compose-markdown = "0.5.4"
 editor = "0.23.5"
 androidx-navigation = "2.8.5"
+generativeai = "0.9.0"
 konfetti-compose = "2.0.4"
 compose-preference-library = "1.1.1"
 kotlinx-coroutines = "1.10.1"
@@ -56,6 +57,7 @@ androidx-security-crypto = { module = "androidx.security:security-crypto", versi
 androidx-webkit = { module = "androidx.webkit:webkit", version.ref = "webkit" }
 
 # Google
+google-generativeai = { module = "com.google.ai.client.generativeai:generativeai", version.ref = "generativeai" }
 google-guava = { module = "com.google.guava:guava", version = "33.3.1-jre" }
 google-gson = { module = "com.google.code.gson:gson", version = "2.11.0" }
 google-material = { module = "com.google.android.material:material", version = "1.12.0" }

@@ -247,58 +247,6 @@ object Settings {
         )
     }
 
-    object AI {
-        val OPENROUTER_API_KEY = stringPreferencesKey("openrouter_api_key")
-        val OPENROUTER_MODEL = stringPreferencesKey("openrouter_model")
-        val OPENROUTER_BASE_URL = stringPreferencesKey("openrouter_base_url")
-        val TEMPERATURE = floatPreferencesKey("ai_temperature")
-        val MAX_OUTPUT_TOKENS = intPreferencesKey("ai_max_output_tokens")
-        val STREAM_RESPONSES = booleanPreferencesKey("ai_stream_responses")
-
-        // ── Anthropic / Claude support ────────────────────────────────────
-        /** "openrouter" (default) or "anthropic" */
-        val AI_PROVIDER = stringPreferencesKey("ai_provider")
-        val ANTHROPIC_API_KEY = stringPreferencesKey("anthropic_api_key")
-        /** e.g. "claude-sonnet-4-6", "claude-opus-5" */
-        val ANTHROPIC_MODEL = stringPreferencesKey("anthropic_model")
-
-        @Composable
-        fun rememberOpenRouterApiKey() = rememberPreference(key = OPENROUTER_API_KEY, defaultValue = "")
-
-        @Composable
-        fun rememberOpenRouterModel() = rememberPreference(
-            key = OPENROUTER_MODEL,
-            defaultValue = "qwen/qwen3.8-flash"
-        )
-
-        @Composable
-        fun rememberOpenRouterBaseUrl() = rememberPreference(
-            key = OPENROUTER_BASE_URL,
-            defaultValue = "https://openrouter.ai/api/v1/"
-        )
-
-        @Composable
-        fun rememberAiTemperature() = rememberPreference(key = TEMPERATURE, defaultValue = 0.3f)
-
-        @Composable
-        fun rememberAiMaxOutputTokens() = rememberPreference(
-            key = MAX_OUTPUT_TOKENS,
-            defaultValue = 4096
-        )
-
-        @Composable
-        fun rememberAiStreamResponses() = rememberPreference(key = STREAM_RESPONSES, defaultValue = true)
-
-        @Composable
-        fun rememberAiProvider() = rememberPreference(key = AI_PROVIDER, defaultValue = "openrouter")
-
-        @Composable
-        fun rememberAnthropicApiKey() = rememberPreference(key = ANTHROPIC_API_KEY, defaultValue = "")
-
-        @Composable
-        fun rememberAnthropicModel() = rememberPreference(key = ANTHROPIC_MODEL, defaultValue = "claude-sonnet-4-6")
-    }
-
     object EditorTabs {
         val AUTO_SAVE = booleanPreferencesKey("auto_save")
 
