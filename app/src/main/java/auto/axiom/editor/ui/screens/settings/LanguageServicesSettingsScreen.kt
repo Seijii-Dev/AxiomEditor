@@ -36,7 +36,7 @@ fun LanguageServicesSettingsScreen(
     val external = rememberExternalEnabled()
     val host = rememberExternalHost()
     val port = rememberExternalPort()
-    val background = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
+    val background = MaterialTheme.colorScheme.surfaceVariant
 
     LazyColumn(
         modifier = modifier.fillMaxWidth().padding(horizontal = 12.dp),
@@ -71,7 +71,8 @@ fun LanguageServicesSettingsScreen(
             summary = { Text(it) },
             rememberState = { host },
             defaultValue = host.value,
-            enabled = external.value,
+            enabled = { external.value },
+            textToValue = { it },
             modifier = Modifier.clip(PreferenceShape.Middle).background(background)
         )
         textFieldPreference(
@@ -80,7 +81,7 @@ fun LanguageServicesSettingsScreen(
             summary = { Text(it.toString()) },
             rememberState = { port },
             defaultValue = port.value,
-            enabled = external.value,
+            enabled = { external.value },
             textToValue = { it.toIntOrNull()?.coerceIn(1, 65535) ?: port.value },
             modifier = Modifier.clip(PreferenceShape.Bottom).background(background)
         )
