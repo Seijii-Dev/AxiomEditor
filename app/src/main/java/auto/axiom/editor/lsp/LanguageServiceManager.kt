@@ -3,6 +3,7 @@ package auto.axiom.editor.lsp
 import androidx.compose.runtime.mutableStateMapOf
 import org.eclipse.lsp4j.CompletionItem
 import org.eclipse.lsp4j.Diagnostic
+import org.json.JSONObject
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -14,6 +15,7 @@ object LanguageServiceManager {
     private val documents = ConcurrentHashMap<String, String>()
     private val analyses = mutableStateMapOf<String, LanguageAnalysis>()
     private val externalProviders = ConcurrentHashMap<SupportedLanguage, ExternalLanguageProvider>()
+    private val tcpClients = ConcurrentHashMap<SupportedLanguage, TcpLspClient>()
 
     fun open(path: String, text: String) = update(path, text)
 
@@ -35,6 +37,46 @@ object LanguageServiceManager {
     fun diagnostics(path: String): List<Diagnostic> = analyses[path]?.diagnostics.orEmpty()
     fun completions(path: String): List<CompletionItem> = analyses[path]?.completions.orEmpty()
     fun analysis(path: String): LanguageAnalysis? = analyses[path]
+
+    fun configureTcpServers(enabled: Boolean, host: String, port: Int) {
+        if (!enabled) {
+            tcpClients.values.forEach { it.close() }
+            tcpClients.clear()
+            return
+        }
+        SupportedLanguage.values().forEach { language ->
+            if (!tcpClients.containsKey(language)) {
+                runCatching { TcpLspClient(host, port, language) }
+                    .onSuccess { tcpClients[language] = it }
+            }
+        }
+    }
+
+    fun semanticCompletions(
+        path: String,
+        text: String,
+        line: Int,
+        character: Int,
+        prefix: String
+    ): List<JSONObject> {
+        val language = SupportedLanguage.fromPath(path) ?: return emptyList()
+        val client = tcpClients[language] ?: return emptyList()
+        return runCatching { client.completion("file://$path", text, line, character) }
+            .getOrDefault(emptyList())
+            .filter { it.optString("label").startsWith(prefix, ignoreCase = true) }
+    }
+
+    fun semanticCompletions(
+        language: SupportedLanguage,
+        uri: String,
+        text: String,
+        line: Int,
+        character: Int,
+        prefix: String
+    ): List<JSONObject> = runCatching {
+        tcpClients[language]?.completion(uri, text, line, character).orEmpty()
+            .filter { it.optString("label").startsWith(prefix, ignoreCase = true) }
+    }.getOrDefault(emptyList())
 
     fun registerExternalProvider(language: SupportedLanguage, provider: ExternalLanguageProvider) {
         externalProviders[language] = provider

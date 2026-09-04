@@ -15,6 +15,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
@@ -22,6 +23,7 @@ import auto.axiom.editor.core.settings.Settings.LanguageServices.rememberExterna
 import auto.axiom.editor.core.settings.Settings.LanguageServices.rememberExternalHost
 import auto.axiom.editor.core.settings.Settings.LanguageServices.rememberExternalPort
 import auto.axiom.editor.core.settings.Settings.LanguageServices.rememberOfflineEnabled
+import auto.axiom.editor.lsp.LanguageServiceManager
 import me.zhanghai.compose.preference.preferenceCategory
 import me.zhanghai.compose.preference.switchPreference
 import me.zhanghai.compose.preference.textFieldPreference
@@ -37,6 +39,10 @@ fun LanguageServicesSettingsScreen(
     val host = rememberExternalHost()
     val port = rememberExternalPort()
     val background = MaterialTheme.colorScheme.surfaceVariant
+
+    LaunchedEffect(external.value, host.value, port.value) {
+        LanguageServiceManager.configureTcpServers(external.value, host.value, port.value)
+    }
 
     LazyColumn(
         modifier = modifier.fillMaxWidth().padding(horizontal = 12.dp),

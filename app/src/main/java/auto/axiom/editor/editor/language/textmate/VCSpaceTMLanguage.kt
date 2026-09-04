@@ -24,6 +24,7 @@ import io.github.rosemoe.sora.lang.completion.IdentifierAutoComplete
 import auto.axiom.editor.editor.completion.CompletionItemKind
 import auto.axiom.editor.editor.completion.SimpleCompletionItem
 import auto.axiom.editor.lsp.OfflineLanguageService
+import auto.axiom.editor.lsp.LanguageServiceManager
 import auto.axiom.editor.lsp.SupportedLanguage
 import io.github.rosemoe.sora.langs.textmate.registry.GrammarRegistry
 import io.github.rosemoe.sora.langs.textmate.registry.ThemeRegistry
@@ -229,6 +230,34 @@ class AxiomEditorTMLanguage protected constructor(
                                 )
                             )
                         }
+
+                    val documentText = ref.subContent(
+                        0,
+                        0,
+                        ref.lineCount - 1,
+                        ref.getColumnCount(ref.lineCount - 1)
+                    ).toString()
+                    LanguageServiceManager.semanticCompletions(
+                        supportedLanguage,
+                        "untitled:axiom/${supportedLanguage.id}",
+                        documentText,
+                        cursor.leftLine,
+                        cursor.leftColumn,
+                        prefix
+                    ).forEach { item ->
+                        val label = item.optString("label")
+                        if (label.isNotEmpty()) {
+                            publisher.addItem(
+                                SimpleCompletionItem(
+                                    completionKind = CompletionItemKind.UNKNOWN,
+                                    label = label,
+                                    desc = item.optString("detail", "Semantic ${supportedLanguage.displayName} completion"),
+                                    prefixLength = prefix.length,
+                                    commitText = item.optString("insertText", label)
+                                )
+                            )
+                        }
+                    }
             }
             grammarName?.let { println(it) }
 //          Gemini.completeCode(
