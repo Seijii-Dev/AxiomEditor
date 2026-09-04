@@ -254,6 +254,25 @@ object Settings {
         fun rememberAutoSave() = rememberPreference(key = AUTO_SAVE, defaultValue = false)
     }
 
+    object LanguageServices {
+        val OFFLINE_ENABLED = booleanPreferencesKey("language_services_offline_enabled")
+        val EXTERNAL_ENABLED = booleanPreferencesKey("language_services_external_enabled")
+        val EXTERNAL_HOST = stringPreferencesKey("language_services_external_host")
+        val EXTERNAL_PORT = intPreferencesKey("language_services_external_port")
+
+        @Composable
+        fun rememberOfflineEnabled() = rememberPreference(key = OFFLINE_ENABLED, defaultValue = true)
+
+        @Composable
+        fun rememberExternalEnabled() = rememberPreference(key = EXTERNAL_ENABLED, defaultValue = false)
+
+        @Composable
+        fun rememberExternalHost() = rememberPreference(key = EXTERNAL_HOST, defaultValue = "127.0.0.1")
+
+        @Composable
+        fun rememberExternalPort() = rememberPreference(key = EXTERNAL_PORT, defaultValue = 2087)
+    }
+
     object Monaco {
         val MONACO_THEME = stringPreferencesKey("monaco_theme")
         val FONT_SIZE = intPreferencesKey("monaco_font_size")

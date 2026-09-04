@@ -97,6 +97,15 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     )
 
                     preference(
+                        key = "pref_configure_language_services_key",
+                        title = { Text("Language Services") },
+                        summary = { Text("Configure offline and external language intelligence") },
+                        onClick = {
+                            navController.navigateSingleTop(SettingScreens.LanguageServices)
+                        }
+                    )
+
+                    preference(
                         key = "pref_configure_git_key",
                         title = {
                             Text(
@@ -180,6 +189,15 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                 MonacoEditorSettingsScreen(
                     modifier = modifier,
                     onNavigateUp = { navController.navigateSingleTop(SettingScreens.Editor) }
+                )
+            }
+        }
+
+        composable<SettingScreens.LanguageServices> {
+            ProvidePreferenceLocals {
+                LanguageServicesSettingsScreen(
+                    modifier = modifier,
+                    onNavigateUp = navController::navigateUp
                 )
             }
         }
