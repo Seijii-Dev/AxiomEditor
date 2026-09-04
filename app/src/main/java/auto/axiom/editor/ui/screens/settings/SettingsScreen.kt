@@ -46,6 +46,7 @@ import auto.axiom.editor.github.auth.Api
 import auto.axiom.editor.resources.R
 import auto.axiom.editor.ui.navigateSingleTop
 import auto.axiom.editor.ui.screens.SettingScreens
+import auto.axiom.editor.ui.screens.plugin.PluginsScreen
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import me.zhanghai.compose.preference.preference
 import me.zhanghai.compose.preference.preferenceCategory
@@ -84,6 +85,15 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         summary = { Text(stringResource(strings.pref_configure_editor_summary)) },
                         onClick = {
                             navController.navigateSingleTop(SettingScreens.Editor)
+                        }
+                    )
+
+                    preference(
+                        key = "pref_configure_extensions_key",
+                        title = { Text("Extensions") },
+                        summary = { Text("Manage Acode-style JavaScript extensions") },
+                        onClick = {
+                            navController.navigateSingleTop(SettingScreens.Extensions)
                         }
                     )
 
@@ -175,6 +185,9 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
             }
         }
 
+        composable<SettingScreens.Extensions> {
+            PluginsScreen(modifier = modifier)
+        }
         composable<SettingScreens.MonacoEditor> {
             ProvidePreferenceLocals {
                 MonacoEditorSettingsScreen(
