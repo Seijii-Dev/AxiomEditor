@@ -16,6 +16,7 @@ object LanguageServiceManager {
     private val analyses = mutableStateMapOf<String, LanguageAnalysis>()
     private val externalProviders = ConcurrentHashMap<SupportedLanguage, ExternalLanguageProvider>()
     private val tcpClients = ConcurrentHashMap<SupportedLanguage, TcpLspClient>()
+    private val processClients = ConcurrentHashMap<SupportedLanguage, ProcessLspClient>()
 
     fun open(path: String, text: String) = update(path, text)
 
@@ -42,6 +43,8 @@ object LanguageServiceManager {
         if (!enabled) {
             tcpClients.values.forEach { it.close() }
             tcpClients.clear()
+            processClients.values.forEach { it.close() }
+            processClients.clear()
             return
         }
         SupportedLanguage.values().forEach { language ->
@@ -74,9 +77,29 @@ object LanguageServiceManager {
         character: Int,
         prefix: String
     ): List<JSONObject> = runCatching {
-        tcpClients[language]?.completion(uri, text, line, character).orEmpty()
+        val values = tcpClients[language]?.completion(uri, text, line, character)
+            ?: processClients[language]?.completion(uri, text, line, character)
+            ?: startLocal(language)?.let { client ->
+                processClients[language] = client
+                client.completion(uri, text, line, character)
+            }
+            ?: emptyList()
+        values
             .filter { it.optString("label").startsWith(prefix, ignoreCase = true) }
     }.getOrDefault(emptyList())
+
+    private fun startLocal(language: SupportedLanguage): ProcessLspClient? {
+        val command = when (language) {
+            SupportedLanguage.PYTHON -> listOf("pyright-langserver", "--stdio")
+            SupportedLanguage.JAVASCRIPT, SupportedLanguage.TYPESCRIPT -> listOf("typescript-language-server", "--stdio")
+            SupportedLanguage.JAVA -> listOf("jdtls")
+            SupportedLanguage.KOTLIN -> listOf("kotlin-language-server")
+            else -> return null
+        }
+        return LspRuntimeBridge.startLocal(
+            LspRuntimeBridge.ServerSpec(language, command)
+        )
+    }
 
     fun registerExternalProvider(language: SupportedLanguage, provider: ExternalLanguageProvider) {
         externalProviders[language] = provider
