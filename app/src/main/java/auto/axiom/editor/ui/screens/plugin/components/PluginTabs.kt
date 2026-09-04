@@ -30,8 +30,8 @@ fun PluginTabs(
     currentRoute: String,
     navController: NavController
 ) {
-    val tabItems = listOf(PluginScreens.Installed)
-    val tabIndices = mapOf(PluginScreens.Installed.route to 0)
+    val tabItems = listOf(PluginScreens.Installed, PluginScreens.Extensions)
+    val tabIndices = tabItems.mapIndexed { index, screen -> screen.route to index }.toMap()
 
     TabRow(
         modifier = modifier,

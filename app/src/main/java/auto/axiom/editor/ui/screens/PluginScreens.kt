@@ -33,4 +33,9 @@ sealed class PluginScreens(
             Icon(ImageVector.vectorResource(R.drawable.ic_download), contentDescription = null)
         }
     )
+
+    data object Extensions : PluginScreens(
+        route = "extensions",
+        title = "Extensions"
+    )
 }

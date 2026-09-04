@@ -46,11 +46,15 @@ import com.blankj.utilcode.util.UriUtils
 import auto.axiom.editor.PluginConstants
 import auto.axiom.editor.app.strings
 import auto.axiom.editor.extensions.toFile
+import auto.axiom.editor.extensions.ExtensionPackageManager
+import auto.axiom.editor.extensions.InstalledExtension
+import java.io.File
 import auto.axiom.editor.plugins.PluginLoader
 import auto.axiom.editor.plugins.internal.PluginInfo
 import auto.axiom.editor.ui.LocalToastHostState
 import auto.axiom.editor.ui.screens.PluginScreens
 import auto.axiom.editor.ui.screens.plugin.components.InstalledPluginList
+import auto.axiom.editor.ui.screens.plugin.JavaScriptExtensionsScreen
 import auto.axiom.editor.ui.screens.plugin.components.NewPluginButton
 import auto.axiom.editor.ui.screens.plugin.components.NewPluginSheet
 import auto.axiom.editor.ui.screens.plugin.components.PluginTabs
@@ -78,9 +82,39 @@ fun PluginsScreen(
 
     val toastHostState = LocalToastHostState.current
     val context = LocalContext.current
+    val extensionManager = remember { ExtensionPackageManager(context) }
+    var installedExtensions by remember { mutableStateOf<List<InstalledExtension>>(emptyList()) }
+
+    fun reloadExtensions() {
+        installedExtensions = extensionManager.listInstalled()
+    }
 
     LaunchedEffect(Unit) {
         viewModel.loadInstalledPlugins(context)
+        reloadExtensions()
+    }
+
+    val openExtensionFile = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            coroutineScope.launch {
+                runCatching {
+                    val temporaryZip = File(context.cacheDir, "extension-${System.currentTimeMillis()}.zip")
+                    context.contentResolver.openInputStream(uri).use { input ->
+                        requireNotNull(input) { "Unable to read extension package" }
+                        temporaryZip.outputStream().use { output -> input.copyTo(output) }
+                    }
+                    extensionManager.install(temporaryZip)
+                    temporaryZip.delete()
+                    reloadExtensions()
+                }.onSuccess {
+                    toastHostState.showToast("Extension installed", Icons.Rounded.Check)
+                }.onFailure {
+                    toastHostState.showToast(it.message ?: "Unable to install extension", Icons.Rounded.ErrorOutline)
+                }
+            }
+        }
     }
 
     var pluginToUpdate: PluginInfo? by remember { mutableStateOf(null) }
@@ -174,6 +208,22 @@ fun PluginsScreen(
                                         ?: "application/zip"
                                 )
                             )
+                        }
+                    )
+                }
+                composable(PluginScreens.Extensions.route) {
+                    JavaScriptExtensionsScreen(
+                        extensions = installedExtensions,
+                        onInstall = {
+                            openExtensionFile.launch(arrayOf("application/zip", "application/octet-stream"))
+                        },
+                        onSetEnabled = { extension, enabled ->
+                            extensionManager.setEnabled(extension.manifest.id, enabled)
+                            reloadExtensions()
+                        },
+                        onUninstall = { extension ->
+                            extensionManager.uninstall(extension.manifest.id)
+                            reloadExtensions()
                         }
                     )
                 }
