@@ -191,12 +191,20 @@ class AxiomEditorTMLanguage protected constructor(
             }
 
             grammar?.name?.let { grammarName ->
-                val language = SupportedLanguage.fromPath("file.${grammarName.lowercase()}")
-                    ?: when (grammarName.lowercase()) {
-                        "javascriptreact" -> SupportedLanguage.JAVASCRIPT
-                        "typescriptreact" -> SupportedLanguage.TYPESCRIPT
-                        else -> null
-                    }
+                val normalizedGrammar = grammarName
+                    .substringAfterLast('.')
+                    .lowercase()
+                    .replace(" ", "")
+                val language = SupportedLanguage.values().firstOrNull { supported ->
+                    normalizedGrammar == supported.id || normalizedGrammar in supported.extensions
+                } ?: when (normalizedGrammar) {
+                    "python3" -> SupportedLanguage.PYTHON
+                    "java-class" -> SupportedLanguage.JAVA
+                    "kotlin-script" -> SupportedLanguage.KOTLIN
+                    "javascriptreact" -> SupportedLanguage.JAVASCRIPT
+                    "typescriptreact" -> SupportedLanguage.TYPESCRIPT
+                    else -> null
+                }
                 language?.let { supportedLanguage ->
                     OfflineLanguageService.analyze(supportedLanguage, "").completions
                         .filter { it.label.startsWith(prefix, ignoreCase = true) }
