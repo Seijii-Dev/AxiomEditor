@@ -21,6 +21,10 @@ import io.github.rosemoe.sora.lang.analysis.AnalyzeManager
 import io.github.rosemoe.sora.lang.completion.CompletionHelper
 import io.github.rosemoe.sora.lang.completion.CompletionPublisher
 import io.github.rosemoe.sora.lang.completion.IdentifierAutoComplete
+import auto.axiom.editor.editor.completion.CompletionItemKind
+import auto.axiom.editor.editor.completion.SimpleCompletionItem
+import auto.axiom.editor.lsp.OfflineLanguageService
+import auto.axiom.editor.lsp.SupportedLanguage
 import io.github.rosemoe.sora.langs.textmate.registry.GrammarRegistry
 import io.github.rosemoe.sora.langs.textmate.registry.ThemeRegistry
 import io.github.rosemoe.sora.langs.textmate.registry.model.DefaultGrammarDefinition
@@ -180,13 +184,39 @@ class AxiomEditorTMLanguage protected constructor(
         val ref = content.reference
         val cursor = ref.cursor
 
-        if (prefix.isNotEmpty()) {
-            runBlocking {
+        runBlocking {
+            if (prefix.isNotEmpty()) {
                 val idt = textMateAnalyzer!!.syncIdentifiers
                 autoCompleter.requireAutoComplete(content, position, prefix, publisher, idt)
+            }
 
-                grammar?.name?.let { grammarName ->
-                    println(grammarName)
+            grammar?.name?.let { grammarName ->
+                val language = SupportedLanguage.fromPath("file.${grammarName.lowercase()}")
+                    ?: when (grammarName.lowercase()) {
+                        "javascriptreact" -> SupportedLanguage.JAVASCRIPT
+                        "typescriptreact" -> SupportedLanguage.TYPESCRIPT
+                        else -> null
+                    }
+                language?.let { supportedLanguage ->
+                    OfflineLanguageService.analyze(supportedLanguage, "").completions
+                        .filter { it.label.startsWith(prefix, ignoreCase = true) }
+                        .forEach { item ->
+                            publisher.addItem(
+                                SimpleCompletionItem(
+                                    completionKind = when (supportedLanguage) {
+                                        SupportedLanguage.HTML, SupportedLanguage.XML -> CompletionItemKind.TAG
+                                        SupportedLanguage.CSS -> CompletionItemKind.ATTRIBUTE
+                                        else -> CompletionItemKind.KEYWORD
+                                    },
+                                    label = item.label,
+                                    desc = item.detail ?: "${supportedLanguage.displayName} language service",
+                                    prefixLength = prefix.length,
+                                    commitText = item.label
+                                )
+                            )
+                        }
+                }
+                println(grammarName)
 //          Gemini.completeCode(
 //            CompletionMetadata(
 //              language = grammarName,
@@ -218,7 +248,6 @@ class AxiomEditorTMLanguage protected constructor(
 //              )
 //            }
 //          }.onFailure(Throwable::printStackTrace)
-                }
             }
         }
     }
