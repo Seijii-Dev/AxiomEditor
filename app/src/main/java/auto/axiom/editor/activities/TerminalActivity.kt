@@ -315,7 +315,10 @@ class TerminalActivity : ComponentActivity() {
 
         val libtalloc = File(prefix, "lib/libtalloc.so.2")
         if (usr.exists() && (prefix.listFiles().isNullOrEmpty() || !libtalloc.exists())) {
-            Runtime.getRuntime().exec(arrayOf("tar", "-xf", usr.absolutePath, "-C", appDataDir)).waitFor()
+            ProcessBuilder("tar", "-xf", usr.absolutePath, "-C", appDataDir.absolutePath)
+                .redirectErrorStream(true)
+                .start()
+                .waitFor()
             usr.delete()
         }
 
