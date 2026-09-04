@@ -261,6 +261,7 @@ class CodeEditorView(context: Context, file: File) : LinearLayout(context) {
 
         return if (scopeName != null) {
             AxiomEditorTMLanguage.create(scopeName, GrammarRegistry.getInstance(), true).apply {
+                fileExtension = file?.extension
                 tabSize = editorIndent
                 useTab(editorUseTab)
             }

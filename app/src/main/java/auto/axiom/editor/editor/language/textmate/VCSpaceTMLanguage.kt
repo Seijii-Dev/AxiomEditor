@@ -64,6 +64,9 @@ class AxiomEditorTMLanguage protected constructor(
 
     var textMateAnalyzer: AxiomEditorTMAnalyzer? = null
 
+    /** Set by the editor so language services use the real file extension. */
+    var fileExtension: String? = null
+
     private lateinit var newlineHandlers: Array<AxiomEditorTMNewlineHandler>
 
     // this.grammar = grammar;
@@ -190,22 +193,25 @@ class AxiomEditorTMLanguage protected constructor(
                 autoCompleter.requireAutoComplete(content, position, prefix, publisher, idt)
             }
 
-            grammar?.name?.let { grammarName ->
-                val normalizedGrammar = grammarName
-                    .substringAfterLast('.')
-                    .lowercase()
-                    .replace(" ", "")
-                val language = SupportedLanguage.values().firstOrNull { supported ->
-                    normalizedGrammar == supported.id || normalizedGrammar in supported.extensions
-                } ?: when (normalizedGrammar) {
-                    "python3" -> SupportedLanguage.PYTHON
-                    "java-class" -> SupportedLanguage.JAVA
-                    "kotlin-script" -> SupportedLanguage.KOTLIN
-                    "javascriptreact" -> SupportedLanguage.JAVASCRIPT
-                    "typescriptreact" -> SupportedLanguage.TYPESCRIPT
-                    else -> null
+            val grammarName = grammar?.name
+            val language = fileExtension?.let { SupportedLanguage.fromPath("file.$it") }
+                ?: grammarName?.let { name ->
+                    val normalizedGrammar = name
+                        .substringAfterLast('.')
+                        .lowercase()
+                        .replace(" ", "")
+                    SupportedLanguage.values().firstOrNull { supported ->
+                        normalizedGrammar == supported.id || normalizedGrammar in supported.extensions
+                    } ?: when (normalizedGrammar) {
+                        "python3" -> SupportedLanguage.PYTHON
+                        "java-class" -> SupportedLanguage.JAVA
+                        "kotlin-script" -> SupportedLanguage.KOTLIN
+                        "javascriptreact" -> SupportedLanguage.JAVASCRIPT
+                        "typescriptreact" -> SupportedLanguage.TYPESCRIPT
+                        else -> null
+                    }
                 }
-                language?.let { supportedLanguage ->
+            language?.let { supportedLanguage ->
                     OfflineLanguageService.analyze(supportedLanguage, "").completions
                         .filter { it.label.startsWith(prefix, ignoreCase = true) }
                         .forEach { item ->
@@ -223,8 +229,8 @@ class AxiomEditorTMLanguage protected constructor(
                                 )
                             )
                         }
-                }
-                println(grammarName)
+            }
+            grammarName?.let { println(it) }
 //          Gemini.completeCode(
 //            CompletionMetadata(
 //              language = grammarName,
