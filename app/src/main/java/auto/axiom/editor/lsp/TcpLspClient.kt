@@ -54,9 +54,9 @@ class TcpLspClient(
             put("position", JSONObject().put("line", line).put("character", character))
             put("context", JSONObject().put("triggerKind", 1))
         })
-        val values = when {
-            result?.optJSONArray("items") != null -> result.optJSONArray("items")!!
-            result is JSONArray -> result
+        val values = when (result) {
+            is JSONObject -> result.optJSONArray("items") ?: JSONArray()
+            is JSONArray -> result
             else -> JSONArray()
         }
         return List(values.length()) { values.optJSONObject(it) ?: JSONObject() }
