@@ -313,27 +313,19 @@ class TerminalActivity : ComponentActivity() {
     private fun extractPackage(onComplete: () -> Unit) {
         val usr = File(tmpDir, "usr.tar.gz")
 
-        val libtalloc = File(prefix, "lib/libtalloc.so.2")
-        if (usr.exists() && (prefix.listFiles().isNullOrEmpty() || !libtalloc.exists())) {
-            ProcessBuilder("tar", "-xf", usr.absolutePath, "-C", appDataDir.absolutePath)
-                .redirectErrorStream(true)
-                .start()
-                .waitFor()
-            usr.delete()
+        if (usr.exists().not() || prefix.listFiles().isNullOrEmpty().not()) {
+            onComplete()
+            return
         }
 
-        // Older installations may have a populated prefix but no compatibility link.
-        // Repair it without making setup fail when a package mirror omits the optional link.
-        val libDir = File(prefix, "lib").apply { mkdirs() }
-        val soname = File(libDir, "libtalloc.so.2")
-        if (!soname.exists()) {
-            val target = libDir.listFiles()
-                ?.firstOrNull { it.name.startsWith("libtalloc.so.2.") }
-            if (target != null) {
-                runCatching { Files.createSymbolicLink(soname.toPath(), target.toPath()) }
-                    .onFailure { runCatching { target.copyTo(soname, overwrite = true) } }
-            }
-        }
+        Runtime.getRuntime().exec("tar -xf ${usr.absolutePath} -C $appDataDir").waitFor()
+        usr.delete()
+
+        val libtallocSo2Path = File(prefix, "lib/libtalloc.so.2").apply {
+            if (exists()) delete()
+        }.toPath()
+        val libtallocSo241Path = File(prefix, "lib/libtalloc.so.2.4.1").toPath()
+        Files.createSymbolicLink(libtallocSo2Path, libtallocSo241Path)
         onComplete()
     }
 
@@ -394,7 +386,6 @@ class TerminalActivity : ComponentActivity() {
     companion object {
         const val KEY_WORKING_DIRECTORY = "terminal_workingDirectory"
         const val KEY_PYTHON_FILE_PATH = "terminal_python_file"
-        const val KEY_INITIAL_COMMAND = "terminal_initial_command"
     }
 }
 

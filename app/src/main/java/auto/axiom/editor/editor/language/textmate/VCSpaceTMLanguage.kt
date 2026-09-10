@@ -21,11 +21,6 @@ import io.github.rosemoe.sora.lang.analysis.AnalyzeManager
 import io.github.rosemoe.sora.lang.completion.CompletionHelper
 import io.github.rosemoe.sora.lang.completion.CompletionPublisher
 import io.github.rosemoe.sora.lang.completion.IdentifierAutoComplete
-import auto.axiom.editor.editor.completion.CompletionItemKind
-import auto.axiom.editor.editor.completion.SimpleCompletionItem
-import auto.axiom.editor.lsp.OfflineLanguageService
-import auto.axiom.editor.lsp.LanguageServiceManager
-import auto.axiom.editor.lsp.SupportedLanguage
 import io.github.rosemoe.sora.langs.textmate.registry.GrammarRegistry
 import io.github.rosemoe.sora.langs.textmate.registry.ThemeRegistry
 import io.github.rosemoe.sora.langs.textmate.registry.model.DefaultGrammarDefinition
@@ -64,9 +59,6 @@ class AxiomEditorTMLanguage protected constructor(
     var isAutoCompleteEnabled: Boolean = true
 
     var textMateAnalyzer: AxiomEditorTMAnalyzer? = null
-
-    /** Set by the editor so language services use the real file extension. */
-    var fileExtension: String? = null
 
     private lateinit var newlineHandlers: Array<AxiomEditorTMNewlineHandler>
 
@@ -188,78 +180,13 @@ class AxiomEditorTMLanguage protected constructor(
         val ref = content.reference
         val cursor = ref.cursor
 
-        runBlocking {
-            if (prefix.isNotEmpty()) {
+        if (prefix.isNotEmpty()) {
+            runBlocking {
                 val idt = textMateAnalyzer!!.syncIdentifiers
                 autoCompleter.requireAutoComplete(content, position, prefix, publisher, idt)
-            }
 
-            val grammarName = grammar?.name
-            val language = fileExtension?.let { SupportedLanguage.fromPath("file.$it") }
-                ?: grammarName?.let { name ->
-                    val normalizedGrammar = name
-                        .substringAfterLast('.')
-                        .lowercase()
-                        .replace(" ", "")
-                    SupportedLanguage.values().firstOrNull { supported ->
-                        normalizedGrammar == supported.id || normalizedGrammar in supported.extensions
-                    } ?: when (normalizedGrammar) {
-                        "python3" -> SupportedLanguage.PYTHON
-                        "java-class" -> SupportedLanguage.JAVA
-                        "kotlin-script" -> SupportedLanguage.KOTLIN
-                        "javascriptreact" -> SupportedLanguage.JAVASCRIPT
-                        "typescriptreact" -> SupportedLanguage.TYPESCRIPT
-                        else -> null
-                    }
-                }
-            language?.let { supportedLanguage ->
-                    OfflineLanguageService.analyze(supportedLanguage, "").completions
-                        .filter { it.label.startsWith(prefix, ignoreCase = true) }
-                        .forEach { item ->
-                            publisher.addItem(
-                                SimpleCompletionItem(
-                                    completionKind = when (supportedLanguage) {
-                                        SupportedLanguage.HTML, SupportedLanguage.XML -> CompletionItemKind.TAG
-                                        SupportedLanguage.CSS -> CompletionItemKind.ATTRIBUTE
-                                        else -> CompletionItemKind.KEYWORD
-                                    },
-                                    label = item.label,
-                                    desc = item.detail ?: "${supportedLanguage.displayName} language service",
-                                    prefixLength = prefix.length,
-                                    commitText = item.label
-                                )
-                            )
-                        }
-
-                    val documentText = ref.subContent(
-                        0,
-                        0,
-                        ref.lineCount - 1,
-                        ref.getColumnCount(ref.lineCount - 1)
-                    ).toString()
-                    LanguageServiceManager.semanticCompletions(
-                        supportedLanguage,
-                        "untitled:axiom/${supportedLanguage.id}",
-                        documentText,
-                        cursor.leftLine,
-                        cursor.leftColumn,
-                        prefix
-                    ).forEach { item ->
-                        val label = item.optString("label")
-                        if (label.isNotEmpty()) {
-                            publisher.addItem(
-                                SimpleCompletionItem(
-                                    completionKind = CompletionItemKind.UNKNOWN,
-                                    label = label,
-                                    desc = item.optString("detail", "Semantic ${supportedLanguage.displayName} completion"),
-                                    prefixLength = prefix.length,
-                                    commitText = item.optString("insertText", label)
-                                )
-                            )
-                        }
-                    }
-            }
-            grammarName?.let { println(it) }
+                grammar?.name?.let { grammarName ->
+                    println(grammarName)
 //          Gemini.completeCode(
 //            CompletionMetadata(
 //              language = grammarName,
@@ -290,7 +217,9 @@ class AxiomEditorTMLanguage protected constructor(
 //                )
 //              )
 //            }
-//          ).onFailure(Throwable::printStackTrace)
+//          }.onFailure(Throwable::printStackTrace)
+                }
+            }
         }
     }
 

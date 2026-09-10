@@ -33,7 +33,4 @@ sealed class SettingScreens {
 
     @Serializable
     data object MonacoEditor : SettingScreens()
-
-    @Serializable
-    data object LanguageServices : SettingScreens()
 }
