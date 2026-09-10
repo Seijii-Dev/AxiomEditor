@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AccountTree
 import androidx.compose.material.icons.rounded.Code
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.Tune
@@ -82,7 +83,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             Icon(
                                 imageVector = Icons.Rounded.Tune,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         },
                         onClick = {
@@ -98,7 +99,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             Icon(
                                 imageVector = Icons.Rounded.Code,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         },
                         onClick = {
@@ -114,7 +115,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             Icon(
                                 imageVector = Icons.Rounded.Folder,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         },
                         onClick = {
@@ -148,7 +149,15 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                         .size(40.dp)
                                 )
                             }
-                        } else null,
+                        } else {
+                            {
+                                Icon(
+                                    imageVector = Icons.Rounded.AccountTree,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        },
                         summary = if (user.isNotNull()) {
                             {
                                 Text(
