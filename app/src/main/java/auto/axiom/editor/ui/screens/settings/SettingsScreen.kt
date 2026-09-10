@@ -16,6 +16,12 @@
 package auto.axiom.editor.ui.screens.settings
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,9 +29,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountTree
+import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Code
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.Tune
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -68,112 +77,51 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
 
     NavHost(navController, startDestination = SettingScreens.Default) {
         composable<SettingScreens.Default> {
-            ProvidePreferenceLocals {
-                LazyColumn(modifier = modifier.fillMaxSize()) {
-                    preferenceCategory(
-                        key = "pref_category_configure",
-                        title = { Text(stringResource(strings.pref_category_configure)) }
-                    )
-
-                    preference(
-                        key = "pref_configure_general_key",
-                        title = { Text(stringResource(strings.pref_configure_general)) },
-                        summary = { Text(stringResource(strings.pref_configure_general_summary)) },
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Rounded.Tune,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        },
-                        onClick = {
-                            navController.navigateSingleTop(SettingScreens.General)
-                        }
-                    )
-
-                    preference(
-                        key = "pref_configure_editor_key",
-                        title = { Text(stringResource(strings.pref_configure_editor)) },
-                        summary = { Text(stringResource(strings.pref_configure_editor_summary)) },
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Rounded.Code,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        },
-                        onClick = {
-                            navController.navigateSingleTop(SettingScreens.Editor)
-                        }
-                    )
-
-                    preference(
-                        key = "pref_configure_file_key",
-                        title = { Text(stringResource(strings.pref_configure_file_explorer)) },
-                        summary = { Text(stringResource(strings.pref_configure_file_explorer_summary)) },
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Rounded.Folder,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        },
-                        onClick = {
-                            navController.navigateSingleTop(SettingScreens.File)
-                        }
-                    )
-
-                    preference(
-                        key = "pref_configure_git_key",
-                        title = {
-                            Text(
-                                text = if (user.isNull()) {
-                                    stringResource(R.string.login_with_github)
-                                } else {
-                                    stringResource(
-                                        R.string.logged_in_as,
-                                        user!!.username,
-                                        user!!.name ?: ""
-                                    )
-                                }
-                            )
-                        },
-                        icon = if (user.isNotNull()) {
-                            {
-                                AsyncImage(
-                                    model = user!!.avatarUrl,
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .padding(end = 16.dp)
-                                        .clip(CircleShape)
-                                        .size(40.dp)
-                                )
-                            }
-                        } else {
-                            {
-                                Icon(
-                                    imageVector = Icons.Rounded.AccountTree,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        },
-                        summary = if (user.isNotNull()) {
-                            {
-                                Text(
-                                    text = user!!.email ?: ""
-                                )
-                            }
-                        } else null,
-                        onClick = if (user.isNull()) {
-                            {
-                                Api.startLogin(uriHandler)
-                            }
-                        } else {
-                            {}
-                        }
-                    )
-
+            LazyColumn(
+                modifier = modifier.fillMaxSize().padding(horizontal = 20.dp),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                item {
+                    Column(modifier = Modifier.padding(top = 24.dp, bottom = 8.dp)) {
+                        Text("Settings", style = MaterialTheme.typography.headlineLarge)
+                        Text(
+                            "Customize your editing environment",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                item {
+                    SettingsCard(
+                        Icons.Rounded.Tune,
+                        stringResource(strings.pref_configure_general),
+                        "App behavior, startup, updates, and system settings."
+                    ) { navController.navigateSingleTop(SettingScreens.General) }
+                }
+                item {
+                    SettingsCard(
+                        Icons.Rounded.Code,
+                        stringResource(strings.pref_configure_editor),
+                        "Text editing, keybindings, line numbers, and code intelligence."
+                    ) { navController.navigateSingleTop(SettingScreens.Editor) }
+                }
+                item {
+                    SettingsCard(
+                        Icons.Rounded.Folder,
+                        stringResource(strings.pref_configure_file_explorer),
+                        "File management, workspace, opening behavior, and file associations."
+                    ) { navController.navigateSingleTop(SettingScreens.File) }
+                }
+                item {
+                    SettingsCard(
+                        Icons.Rounded.AccountTree,
+                        if (user.isNull()) stringResource(R.string.login_with_github)
+                        else stringResource(R.string.logged_in_as, user!!.username, user!!.name ?: ""),
+                        if (user.isNotNull()) user!!.email ?: "" else "Repository settings, authentication, and diff behavior."
+                    ) {
+                        if (user.isNull()) Api.startLogin(uriHandler)
+                    }
                 }
             }
         }
@@ -217,6 +165,49 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     onNavigateUp = { navController.navigateSingleTop(SettingScreens.Editor) }
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun SettingsCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    summary: String,
+    onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.62f)
+        )
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(18.dp),
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(34.dp)
+            )
+            Spacer(Modifier.width(18.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.titleLarge)
+                Text(
+                    summary,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Icon(
+                imageVector = Icons.Rounded.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
