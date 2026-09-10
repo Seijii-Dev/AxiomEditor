@@ -345,7 +345,7 @@ fun EditorTopBar(
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.PlayArrow,
-                            contentDescription = null
+                            contentDescription = stringResource(id = strings.execute)
                         )
                     }
                 }
@@ -362,7 +362,7 @@ fun EditorTopBar(
                 ) {
                     Icon(
                         Icons.Rounded.Save,
-                        contentDescription = null
+                        contentDescription = stringResource(strings.save)
                     )
                 }
             }
@@ -374,7 +374,7 @@ fun EditorTopBar(
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Rounded.Undo,
-                        contentDescription = null
+                        contentDescription = stringResource(id = strings.editor_undo)
                     )
                 }
             }
@@ -386,7 +386,7 @@ fun EditorTopBar(
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Rounded.Redo,
-                        contentDescription = null
+                        contentDescription = stringResource(id = strings.editor_redo)
                     )
                 }
             }
@@ -403,13 +403,13 @@ fun EditorTopBar(
             }
 
             Box {
-                Tooltip("Menu") {
+                Tooltip(stringResource(id = strings.more_options)) {
                     IconButton(
                         onClick = { showMenu = !showMenu }
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.MoreVert,
-                            contentDescription = null
+                            contentDescription = stringResource(id = strings.more_options)
                         )
                     }
                 }
