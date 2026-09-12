@@ -23,7 +23,7 @@ fun Project.configureBaseExtension() {
 
     defaultConfig {
       minSdk = 26
-      targetSdk = 28
+      targetSdk = 34
       versionCode = 201
       versionName = "2.0.1"
     }

@@ -297,16 +297,7 @@ fun EditorScreen(
                         )
                     }
 
-                    AnimatedVisibility(
-                        visible = false,
-                    ) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.TopStart
-                        ) {
-                            Text("Loading...")
-                        }
-                    }
+                    // Loading indicator placeholder removed (was permanently invisible)
                 } else {
                     AndroidView(
                         factory = {
@@ -339,8 +330,8 @@ fun EditorScreen(
                 recentlyUsedCommands = commandPaletteManager.recentlyUsedCommands,
                 onCommandSelected = { command ->
                     commandPaletteManager.hide()
-
-                    // do something
+                    commandPaletteManager.addRecentlyUsedCommand(command)
+                    command.action(command, compositionContext)
                 },
                 onDismissRequest = { commandPaletteManager.hide() }
             )

@@ -346,13 +346,15 @@ class TerminalActivity : ComponentActivity() {
         }
     }
 
+    private val sharedHttpClient = OkHttpClient.Builder().build()
+
     private suspend fun downloadFile(
         url: String,
         outputFile: File,
         onProgress: (downloadedBytes: Long, totalBytes: Long) -> Unit
     ) {
         withContext(Dispatchers.IO) {
-            val client = OkHttpClient.Builder().build()
+            val client = sharedHttpClient
             val request = Request.Builder().url(url).build()
 
             client.newCall(request).execute().use { response ->

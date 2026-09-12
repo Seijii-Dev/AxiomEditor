@@ -105,8 +105,9 @@ class EditorViewModel : ViewModel() {
     }
 
     fun getSelectedEditor(): View? {
-        return _monacoEditors[uiState.value.openedFiles[uiState.value.selectedFileIndex].file.path]
-            ?: _editors[uiState.value.openedFiles[uiState.value.selectedFileIndex].file.path]
+        val path = uiState.value.openedFiles.getOrNull(uiState.value.selectedFileIndex)?.file?.path
+            ?: return null
+        return _monacoEditors[path] ?: _editors[path]
     }
 
     fun rememberLastFiles() {
@@ -165,7 +166,8 @@ class EditorViewModel : ViewModel() {
     suspend fun saveAll() {
         editors.values.forEach {
             it.saveFile()
-            EventManager.instance.postEvent(FileSaveEvent(java.io.File(it.file!!.absolutePath)))
+            val filePath = it.file?.absolutePath ?: return@forEach
+            EventManager.instance.postEvent(FileSaveEvent(java.io.File(filePath)))
             it.file?.let { file -> setModified(file, false) }
         }
     }
@@ -247,7 +249,8 @@ class EditorViewModel : ViewModel() {
         _uiState.value = uiState.value.copy(openedFiles = emptyList())
 
         _editors.values.forEach {
-            EventManager.instance.postEvent(FileCloseEvent(java.io.File(it.file!!.absolutePath)))
+            val filePath = it.file?.absolutePath ?: return@forEach
+            EventManager.instance.postEvent(FileCloseEvent(java.io.File(filePath)))
             it.release()
         }
         _editors.clear()

@@ -165,8 +165,6 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.browser)
 
-    implementation(libs.retrofit)
-
     implementation(project(":core:common"))
     implementation(project(":core:resources"))
     implementation(project(":feature:editor"))

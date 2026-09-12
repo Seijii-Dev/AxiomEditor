@@ -136,15 +136,14 @@ fun Terminal(modifier: Modifier = Modifier, terminalActivity: TerminalActivity) 
 
                                     return newString
                                 }
-                                terminalView.get()
-                                    ?.let {
-                                        val client = TerminalBackend(it, terminalActivity)
-                                        terminalActivity.terminalBinder!!.createSession(
-                                            generateUniqueString(terminalActivity.terminalBinder!!.service.sessionList),
-                                            client,
-                                            terminalActivity
-                                        )
-                                    }
+                                val tv = terminalView.get() ?: return@IconButton
+                                val binder = terminalActivity.terminalBinder ?: return@IconButton
+                                val client = TerminalBackend(tv, terminalActivity)
+                                binder.createSession(
+                                    generateUniqueString(binder.service.sessionList),
+                                    client,
+                                    terminalActivity
+                                )
 
                             }) {
                                 Icon(
@@ -196,12 +195,12 @@ fun Terminal(modifier: Modifier = Modifier, terminalActivity: TerminalActivity) 
                                     val client = TerminalBackend(this, terminalActivity)
                                     setTextSize(23)
                                     setTerminalViewClient(client)
+                                    val binder = terminalActivity.terminalBinder
+                                        ?: throw IllegalStateException("Terminal service not bound")
                                     val session =
-                                        terminalActivity.terminalBinder!!.getSession(
-                                            terminalActivity.terminalBinder!!.service.currentSession.value
-                                        )
-                                            ?: terminalActivity.terminalBinder!!.createSession(
-                                                terminalActivity.terminalBinder!!.service.currentSession.value,
+                                        binder.getSession(binder.service.currentSession.value)
+                                            ?: binder.createSession(
+                                                binder.service.currentSession.value,
                                                 client,
                                                 terminalActivity
                                             )
@@ -310,11 +309,12 @@ fun SelectableCard(
 }
 
 fun changeSession(terminalActivity: TerminalActivity, session_id: String) {
+    val binder = terminalActivity.terminalBinder ?: return
     terminalView.get()?.apply {
         val client = TerminalBackend(this, terminalActivity)
         val session =
-            terminalActivity.terminalBinder!!.getSession(session_id)
-                ?: terminalActivity.terminalBinder!!.createSession(
+            binder.getSession(session_id)
+                ?: binder.createSession(
                     session_id,
                     client,
                     terminalActivity
@@ -344,7 +344,7 @@ fun changeSession(terminalActivity: TerminalActivity, session_id: String) {
                 terminalView.get()?.mTermSession?.let { VirtualKeysListener(it) }
         }
     }
-    terminalActivity.terminalBinder!!.service.currentSession.value = session_id
+    binder.service.currentSession.value = session_id
     showShortToast(terminalActivity, session_id)
 }
 

@@ -29,7 +29,8 @@ class WorkspaceImpl(
     }
 
     override fun getRootDirectory(): File {
-        return fileExplorerViewModel.openedFolder.value!!.asRawFile()!!
+        return fileExplorerViewModel.openedFolder.value?.asRawFile()
+            ?: throw IllegalStateException("No folder is currently open")
     }
 
     override fun createFile(path: String): Boolean {

@@ -268,7 +268,7 @@ fun GitCommitSheet(
                     stringResource(R.string.review_changes),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -298,7 +298,7 @@ fun GitCommitSheet(
                     stringResource(R.string.options),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 

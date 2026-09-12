@@ -96,6 +96,7 @@ import com.axiomeditor.plugins.event.FileCreateEvent
 import kiwi.orbit.compose.ui.controls.Scaffold
 import kiwi.orbit.compose.ui.controls.ToastHostState
 import kiwi.orbit.compose.ui.controls.rememberToastHostState
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -261,7 +262,7 @@ class EditorActivity : BaseComposeActivity() {
                     EventBus.getDefault().register(this@EditorActivity)
                     createNomediaFile(APP_EXTERNAL_DIR)
 
-                    lifecycleScope.launch {
+                    lifecycleScope.launch(Dispatchers.IO) {
                         //fileExplorerViewModel.openFolder(PathUtils.getInternalAppFilesPath().toFile().wrapFile())
                         runCatching {
                             PluginLoader.loadPlugins(this@EditorActivity)

@@ -46,11 +46,12 @@ class TerminalBackend(
     override fun onTitleChanged(changedSession: TerminalSession) {}
 
     override fun onSessionFinished(finishedSession: TerminalSession) {
-        activity.terminalBinder?.terminateSession(activity.terminalBinder!!.service.currentSession.value)
-        if (activity.terminalBinder!!.service.sessionList.isEmpty()) {
+        val binder = activity.terminalBinder ?: return
+        binder.terminateSession(binder.service.currentSession.value)
+        if (binder.service.sessionList.isEmpty()) {
             //activity.finish()
         } else {
-            val sessionId = activity.terminalBinder!!.service.sessionList.last()
+            val sessionId = binder.service.sessionList.last()
             changeSession(activity, sessionId)
         }
     }
@@ -135,11 +136,12 @@ class TerminalBackend(
 
     override fun onKeyDown(keyCode: Int, e: KeyEvent, session: TerminalSession): Boolean {
         if (keyCode == KeyEvent.KEYCODE_ENTER && !session.isRunning) {
-            activity.terminalBinder?.terminateSession(activity.terminalBinder!!.service.currentSession.value)
-            if (activity.terminalBinder!!.service.sessionList.isEmpty()) {
+            val binder = activity.terminalBinder ?: return true
+            binder.terminateSession(binder.service.currentSession.value)
+            if (binder.service.sessionList.isEmpty()) {
                 activity.finish()
             } else {
-                val sessionId = activity.terminalBinder!!.service.sessionList.last()
+                val sessionId = binder.service.sessionList.last()
                 changeSession(activity, sessionId)
             }
             return true
