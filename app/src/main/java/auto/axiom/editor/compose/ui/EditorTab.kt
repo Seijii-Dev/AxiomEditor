@@ -44,6 +44,7 @@ import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.primaryContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -148,11 +149,13 @@ fun EditorTab(
                             )
                         }
 
-                        Image(
-                            bitmap = rememberSvgAssetImageBitmap(fileIconPath),
-                            contentDescription = "${file.file.name} icon",
-                            modifier = Modifier.size(16.dp),
-                        )
+                        key(file.file.path, fileIconPath) {
+                            Image(
+                                bitmap = rememberSvgAssetImageBitmap(fileIconPath),
+                                contentDescription = "${file.file.name} icon",
+                                modifier = Modifier.size(16.dp),
+                            )
+                        }
 
                         Text(
                             text = file.file.name,
