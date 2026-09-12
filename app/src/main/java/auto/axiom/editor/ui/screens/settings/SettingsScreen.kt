@@ -121,6 +121,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         if (user.isNotNull()) user!!.email ?: "" else "Repository settings, authentication, and diff behavior."
                     ) {
                         if (user.isNull()) Api.startLogin(uriHandler)
+                        else navController.navigateSingleTop(SettingScreens.GitHub)
                     }
                 }
             }
@@ -165,6 +166,17 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     onNavigateUp = { navController.navigateSingleTop(SettingScreens.Editor) }
                 )
             }
+        }
+
+        composable<SettingScreens.GitHub> {
+            GitHubSettingsScreen(
+                modifier = modifier,
+                onNavigateUp = navController::navigateUp,
+                onLoggedOut = {
+                    user = null
+                    navController.navigateSingleTop(SettingScreens.Default)
+                }
+            )
         }
     }
 }

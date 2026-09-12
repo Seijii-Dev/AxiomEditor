@@ -23,6 +23,12 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface GitHubApiService {
+    @GET("user/repos")
+    fun getRepositories(
+        @Query("sort") sort: String = "updated",
+        @Query("per_page") pageSize: Int = 100
+    ): Call<List<Repository>>
+
     @PUT("repos/{owner}/{repo}/contents/{path}")
     fun createFile(
         @Path("owner") owner: String,
@@ -51,7 +57,8 @@ interface GitHubApiService {
     fun getFileContent(
         @Path("owner") owner: String,
         @Path("repo") repo: String,
-        @Path("path") path: String
+        @Path("path") path: String,
+        @Query("ref") branch: String = "main"
     ): Call<FileContent>
 
     @GET("repos/{owner}/{repo}/contributors")

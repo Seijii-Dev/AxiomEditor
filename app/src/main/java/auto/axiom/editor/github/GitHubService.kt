@@ -15,7 +15,6 @@
 
 package auto.axiom.editor.github
 
-import okhttp3.Credentials
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -24,7 +23,9 @@ object GitHubService {
     fun createGitHubApiService(token: String): GitHubApiService {
         val client = OkHttpClient.Builder().addInterceptor { chain ->
             val request = chain.request().newBuilder()
-                .header("Authorization", Credentials.basic("itsvks19", token))
+                .header("Authorization", "Bearer $token")
+                .header("Accept", "application/vnd.github+json")
+                .header("X-GitHub-Api-Version", "2022-11-28")
                 .build()
             chain.proceed(request)
         }.build()
