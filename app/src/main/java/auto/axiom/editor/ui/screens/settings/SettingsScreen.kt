@@ -53,6 +53,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
+import com.blankj.utilcode.util.ToastUtils
 import auto.axiom.editor.app.strings
 import auto.axiom.editor.extensions.isNotNull
 import auto.axiom.editor.extensions.isNull
@@ -120,7 +121,11 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         else stringResource(R.string.logged_in_as, user!!.username, user!!.name ?: ""),
                         if (user.isNotNull()) user!!.email ?: "" else "Repository settings, authentication, and diff behavior."
                     ) {
-                        if (user.isNull()) Api.startLogin(uriHandler)
+                        if (user.isNull()) {
+                            if (!Api.startLogin(uriHandler)) {
+                                ToastUtils.showLong("GitHub login is not configured in this build. Set CLIENT_ID and OAUTH_REDIRECT_URL.")
+                            }
+                        }
                         else navController.navigateSingleTop(SettingScreens.GitHub)
                     }
                 }

@@ -17,6 +17,9 @@ jobs:
 
       - name: Prepare token.properties file
         run: |
+          test -n "${{ secrets.CLIENT_ID }}" || { echo "Missing required repository secret: CLIENT_ID"; exit 1; }
+          test -n "${{ secrets.CLIENT_SECRET }}" || { echo "Missing required repository secret: CLIENT_SECRET"; exit 1; }
+          test -n "${{ secrets.OAUTH_REDIRECT_URL }}" || { echo "Missing required repository secret: OAUTH_REDIRECT_URL"; exit 1; }
           if [ -f "$GITHUB_WORKSPACE/token.properties" ]; then
             rm $GITHUB_WORKSPACE/token.properties
           fi

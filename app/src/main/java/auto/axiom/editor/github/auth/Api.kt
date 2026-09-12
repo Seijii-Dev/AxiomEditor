@@ -15,6 +15,7 @@
 
 package auto.axiom.editor.github.auth
 
+import android.net.Uri
 import androidx.compose.ui.platform.UriHandler
 import androidx.core.content.edit
 import com.google.gson.Gson
@@ -47,13 +48,24 @@ object Api {
         retrofits("https://api.github.com/").create(GitHubClient::class.java)
     }
 
-    val startLogin: (UriHandler) -> Unit = { uriHandler ->
+    fun startLogin(uriHandler: UriHandler): Boolean {
         val clientId = BuildConfig.CLIENT_ID
         val callback = BuildConfig.OAUTH_REDIRECT_URL
-        val url =
-            "https://github.com/login/oauth/authorize?client_id=$clientId&redirect_uri=$callback&scope=repo"
+        if (clientId.isBlank() || callback.isBlank()) return false
 
-        uriHandler.openUri(url)
+        val url = Uri.Builder()
+            .scheme("https")
+            .authority("github.com")
+            .appendPath("login")
+            .appendPath("oauth")
+            .appendPath("authorize")
+            .appendQueryParameter("client_id", clientId)
+            .appendQueryParameter("redirect_uri", callback)
+            .appendQueryParameter("scope", "repo")
+            .build()
+
+        uriHandler.openUri(url.toString())
+        return true
     }
 
     suspend fun exchangeCodeForToken(

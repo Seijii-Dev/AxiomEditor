@@ -62,6 +62,14 @@ Ready to start coding? Download the latest version of Axiom Editor from
 our [releases page](https://github.com/Axiom-Editor/Axiom-Editor/releases)
 or [telegram group](https://t.me/axiomeditor).
 
+## GitHub integration configuration
+
+AxiomEditor uses a GitHub OAuth App for account login. Set the OAuth App callback URL to
+`axiomeditor://callback`, then configure these repository secrets before building an APK:
+`CLIENT_ID`, `CLIENT_SECRET`, and `OAUTH_REDIRECT_URL=axiomeditor://callback`. The CI workflows
+reject builds when these values are missing, so an APK cannot silently ship with an invalid login
+URL.
+
 ## 📖 Plugin Development
 
 ### Unleash the Power of Customization
